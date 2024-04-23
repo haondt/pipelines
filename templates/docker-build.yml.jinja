@@ -5,10 +5,10 @@
 
 docker-build-{{ task.image }}:
   stage: build
-  image:
-    name: docker:latest
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - unset DOCKER_HOST
     - >-
         docker build
         -t {{ registry_section + task.repository|default('haondt') + '/' + task.image }}
