@@ -21,7 +21,6 @@ docker-push-{{ task.repository }}:
     - docker-build-{{ task.image }}
   image: {{ docker_image }}
   script:
-    - unset DOCKER_HOST
-    - echo "$GITLAB_CR_PASSWORD" | docker login $GITLAB_CR_REGISTRY -u $GITLAB_CR_USERNAME --password-stdin
+    - echo "$GITLAB_CR_PASSWORD" | docker login registry.gitlab.com -u $GITLAB_CR_USERNAME --password-stdin
     - docker tag {{ task.image }} {{ task.registry_section }}{{ task.image }}:latest
     - docker push {{ task.registry_section }}{{ task.image }}:latest
