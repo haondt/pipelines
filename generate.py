@@ -22,7 +22,7 @@ def generate_steps(data):
         #on = task.get('on')
 
         if task_type == 'docker-build':
-            template = load_template('docker-build.yml.j2')
+            template = load_template('templates/docker-build.yml.jinja')
             rendered = template.render(task = task)
             output.append(rendered)
 
