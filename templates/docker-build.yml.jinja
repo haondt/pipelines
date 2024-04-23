@@ -5,9 +5,9 @@
 
 docker-build-{{ task.image }}:
   stage: build
-  image: docker:latest
+  image: docker:26.0.2
   services:
-    - docker:dind
+    - docker:26.0.2-dind
   script:
     - >-
         docker build
