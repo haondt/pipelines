@@ -1,5 +1,6 @@
 import yaml
 from jinja2 import Template
+import os
 
 def load_file(fn):
     with open(fn, 'r') as f:
@@ -22,6 +23,12 @@ def generate_steps(data):
         #on = task.get('on')
 
         if task_type == 'docker-build':
+            registry = task.get('registry', 'gitlab')
+            registry_section = {
+                    'gitlab': lambda: os.environ['GITLAB_CR_REGISTRY'] + '/',
+                    'docker-hub': lambda: 'haumea/'
+                    }[registry]()
+            task['registry_section'] = registry_section
             template = load_template('templates/docker-build.yml.jinja')
             rendered = template.render(task=task)
             output.append(rendered)

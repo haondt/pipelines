@@ -1,18 +1,29 @@
-{% if task.type == 'docker-build' %}
+stages:
+  - build
+  - push
 
-{% set registry = task.registry|default('docker-hub') %}
-{% set registry_section = '' if registry == 'docker-hub' else registry + '/' %}
+{% set docker_image = 'docker:26.0.2' %}
 
 docker-build-{{ task.image }}:
   stage: build
-  image: docker:26.0.2
+  image: {{ docker_image }}
   services:
-    - docker:26.0.2-dind
+    - {{ docker_image }}-dind
   script:
     - >-
         docker build
-        -t {{ registry_section + task.repository|default('haondt') + '/' + task.image }}
+        -t {{ task.image }}
         -f {{ task.context|default('.') + '/' + task.file|default('Dockerfile') }}
         {{ task.context|default('.') }}
 
-{% endif %}
+docker-push-{{ task.repository }}:
+  stage: push
+  needs:
+    - docker-build-{{ task.image }}
+  image: {{ docker_image }}
+  services:
+    - {{ docker_image }}-dind
+  script:
+    - docker login $GITLAB_CR_REGISTRY -u $GITLAB_CR_USERNAME --password-stdin <<<$GITLAB_CR_PASSWORD 
+    - docker tag {{ task.image }} {{ task.registry_section }}{{ task.image }}:latest
+    - docker push {{ task.registry_section }}{{ task.image }}:latest
