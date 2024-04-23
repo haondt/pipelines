@@ -31,7 +31,6 @@ def generate_steps(data, env):
     output = []
     for task in tasks:
         task_type = task.get('type')
-        #on = task.get('on')
 
         if task_type == 'docker-build':
             template = load_template('templates/docker-build.yml.jinja')
@@ -41,10 +40,21 @@ def generate_steps(data, env):
     return '\n'.join(output)
 
 def main():
+    for var in [
+            'CI_COMMIT_TAG',
+            'CI_COMMIT_TAG_MESSAGE',
+            'CI_COMMIT_SHA',
+            'CI_COMMIT_REF_NAME',
+            'CI_COMMIT_REF_SLUG',
+            'CI_COMMIT_BRANCH',
+            'CI_PIPELINE_SOURCE'
+            ]:
+        print(f"{var}: {os.environ.get(var, 'does not exist')}")
     pipeline_file = 'pipeline.yml'
     data = load_yaml(pipeline_file)
     env = load_environment()
     steps = generate_steps(data, env)
+
     print(steps)
 
 if __name__ == '__main__':
