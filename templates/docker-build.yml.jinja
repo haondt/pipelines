@@ -10,6 +10,7 @@ docker-build-{{ task.image }}:
   services:
     - {{ docker_image }}-dind
   script:
+    - unset DOCKER_HOST
     - >-
         docker build
         -t {{ task.image }}
@@ -24,6 +25,7 @@ docker-push-{{ task.repository }}:
   services:
     - {{ docker_image }}-dind
   script:
+    - unset DOCKER_HOST
     - docker login $GITLAB_CR_REGISTRY -u $GITLAB_CR_USERNAME --password-stdin <<<$GITLAB_CR_PASSWORD 
     - docker tag {{ task.image }} {{ task.registry_section }}{{ task.image }}:latest
     - docker push {{ task.registry_section }}{{ task.image }}:latest
