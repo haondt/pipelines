@@ -8,6 +8,7 @@ docker-build-{{ task.image }}:
   image:
     name: docker:latest
   script:
+    - unset DOCKER_HOST
     - >-
         docker build
         -t {{ registry_section + task.repository|default('haondt') + '/' + task.image }}
