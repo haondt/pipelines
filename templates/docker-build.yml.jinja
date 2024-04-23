@@ -8,9 +8,10 @@ docker-build-{{ task.image }}:
   image:
     name: docker:latest
   script:
-    - docker build \
-        -t {{ registry_section + task.repository|default('haondt') + '/' + task.image }} \
-        -f {{ task.context|default('.') + '/' + task.file|default('Dockerfile') }} \
+    - >-
+        docker build
+        -t {{ registry_section + task.repository|default('haondt') + '/' + task.image }}
+        -f {{ task.context|default('.') + '/' + task.file|default('Dockerfile') }}
         {{ task.context|default('.') }}
 
 {% endif %}
