@@ -36,6 +36,6 @@ docker-push:{{ registry.type }}:
     - docker tag {{ task.image }} {{ env.DOCKER_HUB_REPOSITORY }}/{{ task.image }}:latest
     - docker push {{ env.DOCKER_HUB_REPOSITORY }}/{{ task.image }}:latest
     {% else %}
-    {% raise ValueError('unexpected registry type') %}
+    - echo "unknown registry {% registry %}"
     {% endif %}
 {% endfor %}
