@@ -8,19 +8,34 @@ docker-build-{{ task.image }}:
   stage: build
   image: {{ docker_image }}
   script:
-    - unset DOCKER_HOST
     - >-
         docker build
         -t {{ task.image }}
         -f {{ task.context|default('.') + '/' + task.file|default('Dockerfile') }}
         {{ task.context|default('.') }}
 
-docker-push-{{ task.repository }}:
+            registry_section = {
+                    'gitlab': lambda: os.environ['GITLAB_CR_REGISTRY'] + '/',
+                    'docker-hub': lambda: 'haumea/'
+                    }[registry]()
+            task['registry_section'] = registry_section
+
+{% for registry in task.registries %}
+docker-push:{{ registry.type }}:
   stage: push
   needs:
     - docker-build-{{ task.image }}
   image: {{ docker_image }}
   script:
+    {% if registry == 'gitlab' %}
     - echo "$GITLAB_CR_PASSWORD" | docker login $GITLAB_CR_REGISTRY -u $GITLAB_CR_USERNAME --password-stdin
-    - docker tag {{ task.image }} {{ task.registry_section }}{{ task.image }}:latest
-    - docker push {{ task.registry_section }}{{ task.image }}:latest
+    - docker tag {{ task.image }} {{ env.GITLAB_CR_REGISTRY}}/{{ task.image }}:latest
+    - docker push {{ env.GITLAB_CR_REGISTRY }}/{{ task.image }}:latest
+    {% elif registry == 'docker-hub' %}
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u $DOCKER_HUB_USERNAME --password-stdin
+    - docker tag {{ task.image }} {{ env.DOCKER_HUB_REPOSITORY }}/{{ task.image }}:latest
+    - docker push {{ env.DOCKER_HUB_REPOSITORY }}/{{ task.image }}:latest
+    {% else %}
+    {% raise ValueError('unexpected registry type') %}
+    {% endif %}
+{% endfor %}

@@ -8,8 +8,12 @@ The `pipeline.yml` file should be a list of tasks to be done by the pipeline.
 tasks:
   - type: docker-build
     on: commit
+    context: . # optional
+    file: Dockefile # optional
     image: foo-image
-
+    registries:
+      - gitlab
+      - docker-hub
 ```
 
 `type`: can be one of
@@ -18,18 +22,6 @@ tasks:
 # type-specific parameters
 
 ## `docker-build`
-
-`registry`: optional, defaults to `gitlab`. can be one of
-- `gitlab`
-- `docker-hub`
-
-`repository`: optional, defaults to `haondt`
-
-`image`: name of image
-
-`context`: options, location of build context, defaults to `.`
-
-`file`: (optional) path to dockerfile, defaults to `Dockerfile`
 
 **notes**
 - if the commit has a (semver-compliant) tag associated with it, the image will have the following labels

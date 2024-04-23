@@ -14,7 +14,18 @@ def load_template(fn):
     file = load_file(fn)
     return Template(file)
 
-def generate_steps(data):
+def load_environment():
+    env = {}
+    def cpy(key):
+        nonlocal env
+        env[key] = os.environ[key]
+
+    cpy('GITLAB_CR_REGISTRY')
+    cpy('DOCKER_HUB_REPOSITORY')
+
+    return env
+
+def generate_steps(data, env):
     tasks = data.get('tasks', [])
 
     output = []
@@ -23,22 +34,17 @@ def generate_steps(data):
         #on = task.get('on')
 
         if task_type == 'docker-build':
-            registry = task.get('registry', 'gitlab')
-            registry_section = {
-                    'gitlab': lambda: os.environ['GITLAB_CR_REGISTRY'] + '/',
-                    'docker-hub': lambda: 'haumea/'
-                    }[registry]()
-            task['registry_section'] = registry_section
             template = load_template('templates/docker-build.yml.jinja')
-            rendered = template.render(task=task)
+            rendered = template.render(task=task, env=env)
             output.append(rendered)
 
     return '\n'.join(output)
 
 def main():
     pipeline_file = 'pipeline.yml'
-    file = load_yaml(pipeline_file)
-    steps = generate_steps(file)
+    data = load_yaml(pipeline_file)
+    env = load_environment()
+    steps = generate_steps(data, env)
     print(steps)
 
 if __name__ == '__main__':
