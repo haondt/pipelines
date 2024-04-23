@@ -5,6 +5,8 @@
 
 docker-build-{{ task.image }}:
   stage: build
+  image:
+    name: docker:latest
   script:
     - docker build \
         -t {{ registry_section + task.repository|default('haondt') + '/' + task.image }} \
