@@ -7,8 +7,6 @@ stages:
 docker-build-{{ task.image }}:
   stage: build
   image: {{ docker_image }}
-  services:
-    - {{ docker_image }}-dind
   script:
     - unset DOCKER_HOST
     - >-
@@ -22,8 +20,6 @@ docker-push-{{ task.repository }}:
   needs:
     - docker-build-{{ task.image }}
   image: {{ docker_image }}
-  services:
-    - {{ docker_image }}-dind
   script:
     - unset DOCKER_HOST
     - docker login $GITLAB_CR_REGISTRY -u $GITLAB_CR_USERNAME --password-stdin <<<$GITLAB_CR_PASSWORD 
