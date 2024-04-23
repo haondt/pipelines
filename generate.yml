@@ -26,7 +26,7 @@ generate:
     - python3 generate.py > generated_pipeline.yml
   artifacts:
     paths:
-      - generated_pipeline.yml
+      - pipelines/generated_pipeline.yml
     expire_in: 10 minutes
 
 trigger:
