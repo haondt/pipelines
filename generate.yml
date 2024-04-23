@@ -23,10 +23,10 @@ generate:
     - cp pipeline.yml ./pipelines/
     - cd ./pipelines
     - echo "generating downstream pipeline"
-    - python3 generate.py > generated_pipeline.yml
+    - python3 generate.py > ../generated_pipeline.yml
   artifacts:
     paths:
-      - pipelines/generated_pipeline.yml
+      - generated_pipeline.yml
     expire_in: 10 minutes
 
 trigger:
