@@ -8,6 +8,7 @@ The `pipeline.yml` file should be a list of tasks to be done by the pipeline.
 tasks:
   - type: docker-build
     on: commit
+    image: foo-image
 
 ```
 

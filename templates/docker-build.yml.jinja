@@ -1,9 +1,7 @@
 {% if task.type == 'docker-build' %}
 
-{% set registry_section = '' %}
-{% if task.registry != 'docker-hub' %}
-{% set registry_section = task.registry + '/' %}
-{% endif %}
+{% set registry = task.registry|default('docker-hub') %}
+{% set registry_section = '' if registry == 'docker-hub' else registry + '/' %}
 
 docker-build-{{ task.image }}:
   stage: build
