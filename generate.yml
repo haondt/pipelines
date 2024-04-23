@@ -15,8 +15,7 @@ generate:
         exit 1
       fi
     - apt update
-    - apt install -y git python3 python3-pip
-    - pip install PyYaml Jinja2
+    - apt install -y git python3 python3-PyYaml python3-Jinja2
     - git clone https://gitlab.com/haondt/CICD/pipelines ./pipelines
     - cp pipeline.yml ./pipelines/
     - cd ./pipelines
