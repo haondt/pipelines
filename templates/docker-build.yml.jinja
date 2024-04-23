@@ -19,9 +19,9 @@ docker-build-{{ task.image }}:
 {% set _ = tags.append(env.CI_COMMIT_TAG[1:]) %}
 {% endif %}
 
-
 {% for registry in task.registries %}
-docker-login:{{ registry }}:
+{% for tag in tags %}
+docker-push:{{ registry }}:{{ tag }}:
   stage: push
   needs:
     - docker-build-{{ task.image }}
@@ -30,22 +30,10 @@ docker-login:{{ registry }}:
   script:
     {% if registry == 'gitlab' %}
     - echo "$GITLAB_CR_PASSWORD" | docker login $GITLAB_CR_REGISTRY -u $GITLAB_CR_USERNAME --password-stdin
-    {% elif registry == 'docker-hub' %}
-    - echo "$DOCKER_HUB_PASSWORD" | docker login -u $DOCKER_HUB_USERNAME --password-stdin
-    {% endif %}
-
-{% for tag in tags %}
-docker-push:{{ registry }}:{{ tag }}:
-  stage: push
-  needs:
-    - docker-login:{{ registry }}
-  image: {{ docker_image }}
-  when: manual
-  script:
-    {% if registry == 'gitlab' %}
     - docker tag {{ task.image }} {{ env.GITLAB_CR_REGISTRY}}/{{ task.image }}:{{ tag }}
     - docker push {{ env.GITLAB_CR_REGISTRY }}/{{ task.image }}:{{ tag }}
     {% elif registry == 'docker-hub' %}
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u $DOCKER_HUB_USERNAME --password-stdin
     - docker tag {{ task.image }} {{ env.DOCKER_HUB_REPOSITORY }}/{{ task.image }}:{{ tag }}
     - docker push {{ env.DOCKER_HUB_REPOSITORY }}/{{ task.image }}:{{ tag }}
     {% endif %}
