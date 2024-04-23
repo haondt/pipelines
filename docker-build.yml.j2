@@ -1,0 +1,16 @@
+{% if task.type == 'docker-build' %}
+
+{% set registry_section = '' %}
+{% if task.registry != 'docker-hub' %}
+{% set registry_section = task.registry + '/' %}
+{% endif %}
+
+docker-build-{{ task.image }}:
+  stage: build
+  script:
+    - docker build \
+        -t {{ registry_section + task.repository|default('haondt') + '/' + task.image }} \
+        -f {{ task.context|default('.') + '/' + task.file|default('Dockerfile') }} \
+        {{ task.context|default('.') }}
+
+{% endif %}

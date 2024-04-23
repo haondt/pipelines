@@ -1,0 +1,38 @@
+import yaml
+from jinja2 import Template
+
+def load_file(fn):
+    with open(fn, 'r') as f:
+        return f.read()
+
+def load_yaml(fn):
+    with open(fn, 'r') as f:
+        return yaml.safe_load(f)
+
+def load_template(fn):
+    file = load_file(fn)
+    return Template(file)
+
+def generate_steps(data):
+    tasks = data.get('tasks', [])
+
+    output = []
+    for task in tasks:
+        task_type = task.get('type')
+        #on = task.get('on')
+
+        if task_type == 'docker-build':
+            template = load_template('docker-build.yml.j2')
+            rendered = template.render(task = task)
+            output.append(rendered)
+
+    return '\n'.join(output)
+
+def main():
+    pipeline_file = 'pipeline.yml'
+    file = load_yaml(pipeline_file)
+    steps = generate_steps(file)
+    print(steps)
+
+if __name__ == '__main__':
+    main()

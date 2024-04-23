@@ -1,0 +1,36 @@
+stages:
+  - bootstrap
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: always
+
+generate:
+  stage: bootstrap
+  script:
+    - |
+      if  [ ! -f pipeline.yml ]; then
+        echo "Error: pipeline.yml not found"
+        exit 1
+      fi
+    - git clone https://gitlab.com/haondt/CICD/pipelines ./pipelines
+    - cp pipeline.yml ./pipelines/
+    - cd ./pipelines
+    - echo "generating downstream pipeline"
+    - python3 generate.py > generated_pipeline.yml
+  artifacts:
+    paths:
+      - generated_pipeline.yml
+    expire_in: 10 minutes
+
+trigger:
+  stage: bootstrap
+  needs:
+    - generate
+  trigger:
+    include:
+      - artifact: generated_pipeline.yml
+        job: generate
+  variables:
+    ROOT_PIPELINE_ID: $CI_PIPELINE_ID
