@@ -14,14 +14,8 @@ docker-build-{{ task.image }}:
         -f {{ task.context|default('.') + '/' + task.file|default('Dockerfile') }}
         {{ task.context|default('.') }}
 
-            registry_section = {
-                    'gitlab': lambda: os.environ['GITLAB_CR_REGISTRY'] + '/',
-                    'docker-hub': lambda: 'haumea/'
-                    }[registry]()
-            task['registry_section'] = registry_section
-
 {% for registry in task.registries %}
-docker-push:{{ registry.type }}:
+docker-push:{{ registry }}:
   stage: push
   needs:
     - docker-build-{{ task.image }}
@@ -36,6 +30,6 @@ docker-push:{{ registry.type }}:
     - docker tag {{ task.image }} {{ env.DOCKER_HUB_REPOSITORY }}/{{ task.image }}:latest
     - docker push {{ env.DOCKER_HUB_REPOSITORY }}/{{ task.image }}:latest
     {% else %}
-    - echo "unknown registry {% registry %}"
+    - echo "unknown registry {{ registry }}"
     {% endif %}
 {% endfor %}
