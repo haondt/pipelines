@@ -1,5 +1,6 @@
 import yaml
-from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader
+from jinja2_extensions import setup_filters
 import os
 
 def load_file(fn):
@@ -10,22 +11,39 @@ def load_yaml(fn):
     with open(fn, 'r') as f:
         return yaml.safe_load(f)
 
-def load_template(fn):
-    file = load_file(fn)
-    return Template(file)
+_jinja_env = None
+def get_jinja():
+    global _jinja_env
+    if _jinja_env is None:
+        env = Environment(loader=FileSystemLoader('templates'))
+        setup_filters(env)
+        _jinja_env = env
+    return _jinja_env
 
-def load_environment():
-    env = {}
-    def cpy(key):
-        nonlocal env
-        env[key] = os.environ[key]
+_env = None
+def get_env():
+    global _env
+    if _env is None:
+        env = {}
+        def cpy(key):
+            nonlocal env
+            env[key] = os.environ[key]
+        def trycpy(key):
+            nonlocal env
+            if key in os.environ:
+                env[key] = os.environ[key]
 
-    cpy('GITLAB_CR_REGISTRY')
-    cpy('DOCKER_HUB_REPOSITORY')
+        cpy('GITLAB_CR_REGISTRY')
+        cpy('DOCKER_HUB_REPOSITORY')
 
-    return env
+        trycpy('CI_COMMIT_TAG')
+        cpy('CI_COMMIT_SHORT_SHA')
 
-def generate_steps(data, env):
+        _env = env
+
+    return _env
+
+def generate_steps(data):
     tasks = data.get('tasks', [])
 
     output = []
@@ -33,28 +51,16 @@ def generate_steps(data, env):
         task_type = task.get('type')
 
         if task_type == 'docker-build':
-            template = load_template('templates/docker-build.yml.jinja')
-            rendered = template.render(task=task, env=env)
+            template = get_jinja().get_template('docker-build.yml.jinja')
+            rendered = template.render(task=task, env=get_env())
             output.append(rendered)
 
     return '\n'.join(output)
 
 def main():
-    for var in [
-            'CI_COMMIT_TAG',
-            'CI_COMMIT_TAG_MESSAGE',
-            'CI_COMMIT_SHA',
-            'CI_COMMIT_SHORT_SHA',
-            'CI_COMMIT_REF_NAME',
-            'CI_COMMIT_REF_SLUG',
-            'CI_COMMIT_BRANCH',
-            'CI_PIPELINE_SOURCE'
-            ]:
-        print(f"{var}: {os.environ.get(var, 'does not exist')}")
     pipeline_file = 'pipeline.yml'
     data = load_yaml(pipeline_file)
-    env = load_environment()
-    steps = generate_steps(data, env)
+    steps = generate_steps(data)
 
     print(steps)
 
