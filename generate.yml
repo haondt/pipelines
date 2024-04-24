@@ -8,13 +8,18 @@ workflow:
 
 generate:
   stage: bootstrap
-  image: registry.gitlab.com/haondt/cicd/registry/hephaestus
+  # image: registry.gitlab.com/haondt/cicd/registry/hephaestus:1.0.0
   script:
     - |
       if  [ ! -f pipeline.yml ]; then
         echo "Error: pipeline.yml not found"
         exit 1
       fi
+    - apt update
+    - apt install -y git python python3-venv
+    - python3 -m venv ./venv
+    - . ./venv/bin/activate
+    - pip install PyYaml Jinja2
     - git clone https://gitlab.com/haondt/CICD/pipelines ./pipelines
     - cp pipeline.yml ./pipelines/
     - cd ./pipelines
