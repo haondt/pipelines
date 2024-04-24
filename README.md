@@ -29,6 +29,22 @@ tasks:
 `type`: can be one of
 - `docker-build`
 
+Additionally, project should contain a `.gitlab-ci.yml` that references this repo, as well as overrides the pipeline triggers.
+By default, the pipeline only triggers on `web`.
+
+```yml
+include:
+  - project: 'haondt/CICD/pipelines'
+    ref: main
+    file: 'generate.yml'
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" 
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_COMMIT_TAG
+```
+
 # type-specific parameters
 
 ## `docker-build`
@@ -48,4 +64,5 @@ tasks:
     - `tag`: `X.Y.Z`, sourced from the tag
     - `branch`: `<branch>-<short_commit_sha>`, source from the branch name and commit
   - `has_tag`: bool, indicating if `CI_COMMIT_TAG` is present
+  - note that this is not the same as setting the overall pipeline triggers, and that still needs to be set manually in your `.gitlab-ci.yml`.
 
