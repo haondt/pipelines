@@ -11,7 +11,7 @@ docker-build-{{ task.image }}:
     - >-
         docker build
         -t {{ task.image }}
-        -f {{ task.context|default('.') + '/' + task.file|default('Dockerfile') }}
+        -f {{ task.file|default('Dockerfile') }}
         {{ task.context|default('.') }}
 
 
