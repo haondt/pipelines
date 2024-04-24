@@ -1,6 +1,7 @@
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from jinja2_extensions import setup_filters
+from helpers import docker_build
 import os
 
 def load_file(fn):
@@ -37,7 +38,9 @@ def get_env():
         cpy('DOCKER_HUB_REPOSITORY')
 
         trycpy('CI_COMMIT_TAG')
+        trycpy('CI_COMMIT_BRANCH')
         cpy('CI_COMMIT_SHORT_SHA')
+        cpy('CI_PIPELINE_SOURCE')
 
         _env = env
 
@@ -52,7 +55,7 @@ def generate_steps(data):
 
         if task_type == 'docker-build':
             template = get_jinja().get_template('docker-build.yml.jinja')
-            rendered = template.render(task=task, env=get_env())
+            rendered = template.render(helpers=docker_build, task=task, env=get_env())
             output.append(rendered)
 
     return '\n'.join(output)

@@ -14,19 +14,17 @@ docker-build-{{ task.image }}:
         -f {{ task.context|default('.') + '/' + task.file|default('Dockerfile') }}
         {{ task.context|default('.') }}
 
-{% set tags = ['latest', env.CI_COMMIT_SHORT_SHA] %}
-{% if 'CI_COMMIT_TAG' in env and env.CI_COMMIT_TAG|regex_ismatch('^v\\d+\\.\\d+\\.\\d+$') %}
-{% set _ = tags.append(env.CI_COMMIT_TAG[1:]) %}
-{% endif %}
 
 {% for registry in task.registries %}
-{% for tag in tags %}
+{% for tag_source, tag  in helpers.get_tags(env).items() %}
 docker-push:{{ registry }}:{{ tag }}:
   stage: push
   needs:
     - docker-build-{{ task.image }}
   image: {{ docker_image }}
+  {% if helpers.should_use_manual_push(task, tag_source, env) %}
   when: manual
+  {% endif %}
   script:
     {% if registry == 'gitlab' %}
     - echo "$GITLAB_CR_PASSWORD" | docker login $GITLAB_CR_REGISTRY -u $GITLAB_CR_USERNAME --password-stdin
