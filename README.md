@@ -62,7 +62,8 @@ workflow:
   - `tag_source`: the thing used to generate the tag for the job. i.e. if the job is to push `my/image:latest`, it will look for an entry with either no `tag`, or `tag: latest`. possible values are:
     - `latest`: the `latest` tag
     - `tag`: `X.Y.Z`, sourced from the tag
-    - `branch`: `<branch>-<short_commit_sha>`, source from the branch name and commit
+    - `commit`: `<branch>-<short_commit_sha>`, source from the branch name and commit
+    - `branch`: `<branch>`, source from the branch name only
   - `has_tag`: bool, indicating if `CI_COMMIT_TAG` is present
   - note that this is not the same as setting the overall pipeline triggers, and that still needs to be set manually in your `.gitlab-ci.yml`.
 

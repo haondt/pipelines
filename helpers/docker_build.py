@@ -1,6 +1,7 @@
 from jinja2_extensions import regex_ismatch
 
 def get_tags(env):
+    # tags[tag_source] = tag
     tags = {
             'latest': 'latest'
             }
@@ -8,7 +9,8 @@ def get_tags(env):
         if regex_ismatch(env['CI_COMMIT_TAG'], r'^v\d+\.\d+\.\d+$'):
             tags['tag'] = env['CI_COMMIT_TAG'][1:]
     if 'CI_COMMIT_BRANCH' in env:
-        tags['branch'] = env['CI_COMMIT_BRANCH'] + '-' + env['CI_COMMIT_SHORT_SHA']
+        tags['commit'] = env['CI_COMMIT_BRANCH'] + '-' + env['CI_COMMIT_SHORT_SHA']
+        tags['branch'] = env['CI_COMMIT_BRANCH']
     return tags
 
 def should_use_manual_push(task, tag_source, env):
