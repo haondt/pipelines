@@ -18,7 +18,7 @@ def should_use_manual_push(task, env):
     for entry in auto_push_on:
         if 'source' not in entry:
             continue
-        if entry['source'] != source:
+        if entry['source'] == source:
             return False
 
     return True
