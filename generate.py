@@ -65,13 +65,7 @@ def generate_steps(data):
     tasks = data.get('tasks', [])
 
     env = get_env()
-    public_env = get_public_env()
-
     output = []
-
-    for k, v in public_env.items():
-        output.append(f'# {k}: {v}')
-
     for task in tasks:
         task_type = task.get('type')
 
@@ -86,12 +80,21 @@ def generate_steps(data):
 
     return '\n'.join(output)
 
+def deduplicate_keys(yaml_data: str):
+    data = yaml.safe_load(yaml_data)
+    return yaml.dump(data)
+
 def main():
+    public_env = get_public_env()
+    for k, v in public_env.items():
+        print(f'# {k}: {v}')
+
     pipeline_file = 'pipeline.yml'
     data = load_yaml(pipeline_file)
     steps = generate_steps(data)
+    dd_steps = deduplicate_keys(steps)
 
-    print(steps)
+    print(dd_steps)
 
 if __name__ == '__main__':
     main()
