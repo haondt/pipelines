@@ -36,7 +36,6 @@ python-push:{{ registry }}:{{ tag }}:
     {% elif registry == 'gitlab' %}
     TWINE_USERNAME: $GITLAB_CR_REGISTRY
     TWINE_PASSWORD: $GITLAB_CR_PASSWORD
-    TWINE_REPOSITORY_URL: $GITLAB_PYPI_REPOSITORY_URL
     {% endif %}
   script:
     {% if registry == 'testpypi' %}
@@ -44,6 +43,6 @@ python-push:{{ registry }}:{{ tag }}:
     {% elif registry == 'pypi' %}
     - python3 -m twine upload --skip-existing -r pypi dist/*
     {% elif registry == 'gitlab' %}
-    - python3 -m twine upload --skip-existing dist/*
+    - python3 -m twine upload --skip-existing --repository-url $GITLAB_PYPI_REPOSITORY_URL dist/*
     {% endif %}
 {% endfor %}
