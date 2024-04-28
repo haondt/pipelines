@@ -2,9 +2,9 @@ stages:
   - build
   - push
 
-{% set build_image = 'registry.gitlab.com/haondt/cicd/registry/pypi-builder:0.0.3' %}
+{% set build_image = 'registry.gitlab.com/haondt/cicd/registry/pypi-builder:0.0.4' %}
 
-pypi-build-{{ task.image }}:
+pypi-build-{{ task.package }}:
   stage: build
   image: {{ build_image }}
   script:

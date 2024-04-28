@@ -25,6 +25,7 @@ tasks:
       - gitlab
       - docker-hub
   - type: pypi-build
+    package: foo-package
     context: . # optional
     file: pyproject.toml # optional
     auto_push: true # optional, default false
