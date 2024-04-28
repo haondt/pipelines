@@ -69,7 +69,7 @@ def generate_steps(data):
 
     output = []
 
-    for k, v in public_env:
+    for k, v in public_env.items():
         output.append(f'# {k}: {v}')
 
     for task in tasks:
