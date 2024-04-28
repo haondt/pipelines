@@ -28,7 +28,9 @@ tasks:
     package: foo-package
     context: . # optional
     file: pyproject.toml # optional
-    auto_push: true # optional, default false
+    auto_push_on: # optional
+      - source: push
+      - source: web
     registries:
       - gitlab
       - pypi
@@ -82,4 +84,6 @@ workflow:
 **notes**
 - only works on tag pipelines
 - `auto_push`: whether or not to push automatically
-
+- the `auto_push_on` entry
+  - see [docker-build](#docker-build) for basics, with a caveat:
+    - only the `source` key is supported, as the job will fail on non-tag pipelines

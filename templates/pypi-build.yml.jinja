@@ -19,10 +19,10 @@ pypi-build-{{ task.package }}:
 {% for registry in task.registries %}
 pypi-push:{{ registry }}:{{ tag }}:
   stage: push
+  image: {{ build_image }}
   needs:
     - pypi-build-{{ task.package }}
-  image: {{ build_image }}
-  {% if not task.auto_push|default(False) %}
+  {% if helpers.should_use_manual_push(task, tag_source, env) %}
   when: manual
   {% endif %}
   script:
