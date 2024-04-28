@@ -2,14 +2,29 @@ stages:
   - build
   - push
 
-{% set build_image = 'registry.gitlab.com/haondt/cicd/registry/pypi-builder:0.0.4' %}
+{% set build_image = 'registry.gitlab.com/haondt/cicd/registry/pypi-builder:1.0.0' %}
+{% tag = helpers.get_version(env) %}
 
 pypi-build-{{ task.package }}:
   stage: build
   image: {{ build_image }}
   script:
     - cd {{ task.context|default('.') }}
-    - python3 /scripts/set-version.py -f {{ task.file|default('pyproject.toml') }} {{ helpers.get_version(env) }}
+    - python3 /scripts/set-version.py -f {{ task.file|default('pyproject.toml') }} {{ tag }}
     - python3 -m flit build
 
 
+{% for registry in task.registries %}
+pypi-push:{{ registry }}:{{ tag }}:
+  stage: push
+  needs:
+    - pypi-build-{{ task.package }}
+  image: {{ build_image }}
+  {% if not task.auto_push|default(False) %}
+  when: manual
+  {% endif %}
+  script:
+    {% if registry == 'testpypi' %}
+    - python3 -m twine upload -r testpypi dist/*
+    {% endif %}
+{% endfor %}

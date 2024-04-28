@@ -32,6 +32,7 @@ tasks:
     registries:
       - gitlab
       - pypi
+      - testpypi
 ```
 
 `type`: can be one of
