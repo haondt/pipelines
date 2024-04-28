@@ -12,7 +12,9 @@ pypi-build-{{ task.package }}:
     - cd {{ task.context|default('.') }}
     - python3 /scripts/set-version.py -f {{ task.file|default('pyproject.toml') }} {{ tag }}
     - python3 -m flit build
-
+  artifacts:
+    paths:
+      - dist
 
 {% for registry in task.registries %}
 pypi-push:{{ registry }}:{{ tag }}:

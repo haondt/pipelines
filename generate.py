@@ -21,7 +21,7 @@ def get_jinja():
         _jinja_env = env
     return _jinja_env
 
-_env = None
+_env: dict[str, str] | None = None
 def get_env():
     global _env
     if _env is None:
@@ -46,20 +46,42 @@ def get_env():
 
     return _env
 
+def get_public_env():
+    private_env = get_env()
+    env = {}
+    for key in [
+        'GITLAB_CR_REGISTRY',
+        'DOCKER_HUB_REPOSITORY',
+        'CI_COMMIT_TAG',
+        'CI_COMMIT_BRANCH',
+        'CI_COMMIT_SHORT_SHA',
+        'CI_PIPELINE_SOURCE'
+        ]:
+        if key in private_env:
+            env[key] = private_env[key]
+    return env
+
 def generate_steps(data):
     tasks = data.get('tasks', [])
 
+    env = get_env()
+    public_env = get_public_env()
+
     output = []
+
+    for k, v in public_env:
+        output.append(f'# {k}: {v}')
+
     for task in tasks:
         task_type = task.get('type')
 
         if task_type == 'docker-build':
             template = get_jinja().get_template('docker-build.yml.jinja')
-            rendered = template.render(helpers=docker_build, task=task, env=get_env())
+            rendered = template.render(helpers=docker_build, task=task, env=env)
             output.append(rendered)
         if task_type == 'pypi-build':
             template = get_jinja().get_template('pypi-build.yml.jinja')
-            rendered = template.render(helpers=pypi_build, task=task, env=get_env())
+            rendered = template.render(helpers=pypi_build, task=task, env=env)
             output.append(rendered)
 
     return '\n'.join(output)
