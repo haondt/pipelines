@@ -22,7 +22,7 @@ pypi-push:{{ registry }}:{{ tag }}:
   image: {{ build_image }}
   needs:
     - pypi-build-{{ task.package }}
-  {% if helpers.should_use_manual_push(task, tag_source, env) %}
+  {% if helpers.should_use_manual_push(task, env) %}
   when: manual
   {% endif %}
   script:
