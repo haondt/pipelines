@@ -1,0 +1,15 @@
+stages:
+  - build
+  - push
+
+{% set build_image = 'registry.gitlab.com/haondt/cicd/registry/pypi-builder:0.0.3' %}
+
+pypi-build-{{ task.image }}:
+  stage: build
+  image: {{ build_image }}
+  script:
+    - cd {{ task.context|default('.') }}
+    - python3 /scripts/set-version.py -f {{ task.file|default('pyproject.toml') }} {{ helpers.get_version() }}
+    - python3 -m flit build
+
+

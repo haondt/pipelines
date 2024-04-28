@@ -1,13 +1,15 @@
-from jinja2_extensions import regex_ismatch
+from utils import try_get_version
 
 def get_tags(env):
     # tags[tag_source] = tag
     tags = {
             'latest': 'latest'
             }
-    if 'CI_COMMIT_TAG' in env:
-        if regex_ismatch(env['CI_COMMIT_TAG'], r'^v\d+\.\d+\.\d+$'):
-            tags['tag'] = env['CI_COMMIT_TAG'][1:]
+    commit_tag = env.get('CI_COMMIT_TAG')
+    if commit_tag is not None:
+        version = try_get_version(commit_tag)
+        if version is not None:
+            tags['tag'] = version
     if 'CI_COMMIT_BRANCH' in env:
         tags['commit'] = env['CI_COMMIT_BRANCH'] + '-' + env['CI_COMMIT_SHORT_SHA']
         tags['branch'] = env['CI_COMMIT_BRANCH']
