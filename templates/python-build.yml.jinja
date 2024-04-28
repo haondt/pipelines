@@ -36,7 +36,7 @@ python-push:{{ registry }}:{{ tag }}:
     {% elif registry == 'gitlab' %}
     TWINE_USERNAME: $GITLAB_CR_REGISTRY
     TWINE_PASSWORD: $GITLAB_CR_PASSWORD
-    TWINE_REPOSITORY_URL: $GITLAB_CR_REGISTRY
+    TWINE_REPOSITORY_URL: $GITLAB_PYPI_REPOSITORY_URL
     {% endif %}
   script:
     {% if registry == 'testpypi' %}
