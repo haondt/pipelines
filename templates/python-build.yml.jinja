@@ -34,7 +34,7 @@ python-push:{{ registry }}:{{ tag }}:
     TWINE_USERNAME: '__token__'
     TWINE_PASSWORD: $PYPI_API_TOKEN
     {% elif registry == 'gitlab' %}
-    TWINE_USERNAME: $GITLAB_CR_REGISTRY
+    TWINE_USERNAME: $GITLAB_CR_USERNAME
     TWINE_PASSWORD: $GITLAB_CR_PASSWORD
     {% endif %}
   script:
