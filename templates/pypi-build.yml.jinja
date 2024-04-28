@@ -9,7 +9,7 @@ pypi-build-{{ task.image }}:
   image: {{ build_image }}
   script:
     - cd {{ task.context|default('.') }}
-    - python3 /scripts/set-version.py -f {{ task.file|default('pyproject.toml') }} {{ helpers.get_version() }}
+    - python3 /scripts/set-version.py -f {{ task.file|default('pyproject.toml') }} {{ helpers.get_version(env) }}
     - python3 -m flit build
 
 
