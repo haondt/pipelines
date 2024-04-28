@@ -44,6 +44,6 @@ python-push:{{ registry }}:{{ tag }}:
     {% elif registry == 'pypi' %}
     - python3 -m twine upload --skip-existing -r pypi dist/*
     {% elif registry == 'gitlab' %}
-    - python3 -m twine upload --skip-existing -r gitlab dist/*
+    - python3 -m twine upload --skip-existing dist/*
     {% endif %}
 {% endfor %}
