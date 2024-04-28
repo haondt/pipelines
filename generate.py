@@ -1,7 +1,7 @@
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from jinja2_extensions import setup_filters
-from helpers import docker_build, pypi_build
+from helpers import docker_build, python_build
 import os
 
 def load_file(fn):
@@ -79,9 +79,9 @@ def generate_steps(data):
             template = get_jinja().get_template('docker-build.yml.jinja')
             rendered = template.render(helpers=docker_build, task=task, env=env)
             output.append(rendered)
-        if task_type == 'pypi-build':
-            template = get_jinja().get_template('pypi-build.yml.jinja')
-            rendered = template.render(helpers=pypi_build, task=task, env=env)
+        if task_type == 'python-build':
+            template = get_jinja().get_template('python-build.yml.jinja')
+            rendered = template.render(helpers=python_build, task=task, env=env)
             output.append(rendered)
 
     return '\n'.join(output)

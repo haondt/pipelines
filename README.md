@@ -24,7 +24,7 @@ tasks:
     registries:
       - gitlab
       - docker-hub
-  - type: pypi-build
+  - type: python-build
     package: foo-package
     context: . # optional
     file: pyproject.toml # optional
@@ -39,7 +39,7 @@ tasks:
 
 `type`: can be one of
 - `docker-build`
-- `pypi-build`
+- `python-build`
 
 Additionally, project should contain a `.gitlab-ci.yml` that references this repo, as well as overrides the pipeline triggers.
 By default, the pipeline only triggers on `web`.
@@ -79,7 +79,7 @@ workflow:
   - `has_tag`: bool, indicating if `CI_COMMIT_TAG` is present
   - note that this is not the same as setting the overall pipeline triggers, and that still needs to be set manually in your `.gitlab-ci.yml`.
 
-## `pypi-build`
+## `python-build`
 
 **notes**
 - only works on tag pipelines

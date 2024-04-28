@@ -2,10 +2,10 @@ stages:
   - build
   - push
 
-{% set build_image = 'registry.gitlab.com/haondt/cicd/registry/pypi-builder:1.0.0' %}
+{% set build_image = 'registry.gitlab.com/haondt/cicd/registry/python-builder:1.0.1' %}
 {% set tag = helpers.get_version(env) %}
 
-pypi-build-{{ task.package }}:
+python-build-{{ task.package }}:
   stage: build
   image: {{ build_image }}
   script:
@@ -14,19 +14,25 @@ pypi-build-{{ task.package }}:
     - python3 -m flit build
   artifacts:
     paths:
-      - dist
+      - dist/*.whl
+      - dist/*.tar.gz
 
 {% for registry in task.registries %}
-pypi-push:{{ registry }}:{{ tag }}:
+python-push:{{ registry }}:{{ tag }}:
   stage: push
   image: {{ build_image }}
   needs:
-    - pypi-build-{{ task.package }}
+    - python-build-{{ task.package }}
   {% if helpers.should_use_manual_push(task, env) %}
   when: manual
   {% endif %}
+  variables:
+    {% if registry == 'testpypi' %}
+    TWINE_USERNAME: '__token__'
+    TWINE_PASSWORD: $TEST_PYPI_API_TOKEN
+    {% endif %}
   script:
     {% if registry == 'testpypi' %}
-    - python3 -m twine upload -r testpypi dist/*
+    - python3 -m twine upload --skip-existing -r testpypi dist/*
     {% endif %}
 {% endfor %}
