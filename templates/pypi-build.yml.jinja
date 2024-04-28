@@ -3,7 +3,7 @@ stages:
   - push
 
 {% set build_image = 'registry.gitlab.com/haondt/cicd/registry/pypi-builder:1.0.0' %}
-{% tag = helpers.get_version(env) %}
+{% set tag = helpers.get_version(env) %}
 
 pypi-build-{{ task.package }}:
   stage: build
