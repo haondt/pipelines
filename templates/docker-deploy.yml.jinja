@@ -13,5 +13,5 @@ docker-deployment-build-{{ task.target }}:
     - cat changed_services.txt | python3 /scripts/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY
   artifacts:
     paths:
-      build.enc
-      changed_services.txt
+      - build.enc
+      - changed_services.txt
