@@ -1,0 +1,17 @@
+stages:
+  - build
+  - push
+
+{% set docker_image = 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:latest' %}
+
+docker-deployment-build-{{ task.target }}:
+  stage: build
+  image: {{ docker_image }}
+  script:
+    - cd {{ task.context|default('.') }}
+    - python3 /scripts/get_changes.py > changed_services.txt
+    - cat changed_services.txt | python3 /scripts/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY
+  artifacts:
+    paths:
+      build.enc
+      changed_services.txt

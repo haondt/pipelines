@@ -1,7 +1,7 @@
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from jinja2_extensions import setup_filters
-from helpers import docker_build, python_build
+from helpers import docker_build, python_build, docker_deploy
 import os
 
 def load_file(fn):
@@ -76,6 +76,10 @@ def generate_steps(data):
         if task_type == 'python-build':
             template = get_jinja().get_template('python-build.yml.jinja')
             rendered = template.render(helpers=python_build, task=task, env=env)
+            output.append(rendered)
+        if task_type == 'docker-deploy':
+            template = get_jinja().get_template('docker-deploy.yml.jinja')
+            rendered = template.render(helpers=docker_deploy, task=task, env=env)
             output.append(rendered)
 
     return '\n'.join(output)

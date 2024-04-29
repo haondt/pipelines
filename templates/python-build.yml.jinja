@@ -2,7 +2,7 @@ stages:
   - build
   - push
 
-{% set build_image = 'registry.gitlab.com/haondt/cicd/registry/python-builder:1.0.1' %}
+{% set build_image = 'registry.gitlab.com/haondt/cicd/registry/python-builder:1.0.2' %}
 {% set tag = helpers.get_version(env) %}
 
 python-build-{{ task.package }}:
