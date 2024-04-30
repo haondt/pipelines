@@ -16,7 +16,7 @@ docker-build-deployment-{{ task.target }}:
       - build.enc
       - changed_services.txt
 
-docker-deploy-{{ task.target }}
+docker-deploy-{{ task.target }}:
   stage: deploy
   image: {{ docker_image }}
   script:
