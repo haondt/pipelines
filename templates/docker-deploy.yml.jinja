@@ -12,9 +12,6 @@ docker-check-changes-{{ task.target }}:
     - cd {{ task.context|default('.') }}
     - python3 /scripts/get_changes.py > "$INITIAL_DIR/changed_services.txt"
     - cd -
-    - ls
-    - pwd
-    - cat changed_services.txt
     - |
       if ! grep -q '[^[:space:]]' changed_services.txt; then
         echo "No changes detected"
@@ -22,6 +19,7 @@ docker-check-changes-{{ task.target }}:
         exit 0
       else
         echo "HAS_CHANGES=1" >> report.env
+      fi
   artifacts:
     paths:
       - changed_services.txt
