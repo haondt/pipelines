@@ -29,7 +29,7 @@ docker-deploy-{{ task.target }}:
   stage: deploy
   image: {{ docker_image }}
   needs:
-    - docker-build-deployment-{{ task.target }}:
+    - docker-build-deployment-{{ task.target }}
   rules:
     - if: '$HAS_CHANGES'
   script:
