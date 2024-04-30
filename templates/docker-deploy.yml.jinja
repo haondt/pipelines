@@ -13,6 +13,7 @@ docker-check-changes-{{ task.target }}:
     - |
       if ! grep -q '[^[:space:]]' changed_services.txt; then
         echo "No changes detected"
+        touch report.env
         exit 0
       else
         echo "HAS_CHANGES=1" >> report.env
