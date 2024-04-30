@@ -1,11 +1,11 @@
 stages:
-  - build
+  - check
   - deploy
 
 {% set docker_image = 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:latest' %}
 
-docker-build-deployment-{{ task.target }}:
-  stage: build
+docker-check-changes-{{ task.target }}:
+  stage: check
   image: {{ docker_image }}
   script:
     - cd {{ task.context|default('.') }}
@@ -16,19 +16,31 @@ docker-build-deployment-{{ task.target }}:
         exit 0
       else
         echo "HAS_CHANGES=1" >> report.env
-      fi
+  artifacts:
+    paths:
+      - changed_services.txt
+    reports:
+      dotenv: report.env
+
+docker-build-deployment-{{ task.target }}:
+  stage: deploy
+  image: {{ docker_image }}
+  needs:
+    - docker-check-changes-{{ task.target }}
+  rules:
+    - if: "$HAS_CHANGES"
+  script:
+    - cd {{ task.context|default('.') }}
     - python3 /scripts/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY
   artifacts:
     paths:
       - build.enc
-      - changed_services.txt
-    reports:
-      dotenv: report.env
 
 docker-deploy-{{ task.target }}:
   stage: deploy
   image: {{ docker_image }}
   needs:
+    - docker-check-changes-{{ task.target }}
     - docker-build-deployment-{{ task.target }}
   rules:
     - if: '$HAS_CHANGES'
