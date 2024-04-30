@@ -8,7 +8,7 @@ docker-check-changes-{{ task.target }}:
   stage: check
   image: {{ docker_image }}
   script:
-    - INITIAL_DIR=$PWD
+    - INITIAL_DIR=$(pwd)
     - cd {{ task.context|default('.') }}
     - python3 /scripts/get_changes.py > "$INITIAL_DIR/changed_services.txt"
     - cd -
