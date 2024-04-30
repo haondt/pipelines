@@ -1,10 +1,10 @@
 stages:
   - build
-  - push
+  - deploy
 
 {% set docker_image = 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:latest' %}
 
-docker-deployment-build-{{ task.target }}:
+docker-build-deployment-{{ task.target }}:
   stage: build
   image: {{ docker_image }}
   script:
@@ -15,3 +15,11 @@ docker-deployment-build-{{ task.target }}:
     paths:
       - build.enc
       - changed_services.txt
+
+docker-deploy-{{ task.target }}
+  stage: deploy
+  image: {{ docker_image }}
+  script:
+    - python3 /scripts/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY ./deploy
+    - cat changed_services.txt | python3 /scripts/get_containers.py > changed_containers.txt
+    - rsync -avz --delete --rsh=ssh -e "ssh -i {{ task.key }}" ./deploy/ {{ task.target }}:/srv/deploy/
