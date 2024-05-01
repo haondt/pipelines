@@ -21,12 +21,13 @@ docker-deploy-build-downstream-{{ task.target }}:
       job: generate
   script:
     - ls
+    - cd pipelines
     - |
       if ! grep -q '[^[:space:]]' changed_services.txt; then
         echo "No changes detected"
-        python3 ./pipelines/render_template.py task.index noop > "$INITIAL_DIR/generated_pipeline.yml"
+        python3 render_template.py task.index noop > "../generated_pipeline.yml"
       else
-        python3 ./pipelines/render_template.py task.index docker-deploy-downstream > "$INITIAL_DIR/generated_pipeline.yml"
+        python3 render_template.py task.index docker-deploy-downstream > "../generated_pipeline.yml"
       fi
   artifacts:
     paths:
