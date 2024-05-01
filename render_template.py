@@ -24,7 +24,7 @@ def load_pipeline_config():
     if 'tasks' not in data:
         data['tasks'] = []
     for i in range(len(data['tasks'])):
-        data['tasks'][i].index = i
+        data['tasks'][i]['index'] = i
     return data
 
 def load_yaml(fn):
