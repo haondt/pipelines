@@ -1,6 +1,6 @@
 docker-build-deployment-{{ task.target }}:
   stage: deploy
-  image: {{ images.docker_deploy }}
+  image: {{ images.docker_deployer }}
   needs:
     - pipeline: $PARENT_PIPELINE_ID
       job: docker-check-changes-{{ task.target }}
@@ -13,7 +13,7 @@ docker-build-deployment-{{ task.target }}:
 
 docker-deploy-{{ task.target }}:
   stage: deploy
-  image: {{ docker_image }}
+  image: {{ images.docker_deployer }}
   needs:
     - docker-build-deployment-{{ task.target }}
     - pipeline: $PARENT_PIPELINE_ID
