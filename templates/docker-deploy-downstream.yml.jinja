@@ -21,4 +21,5 @@ docker-deploy-{{ task.target }}:
   script:
     - python3 /scripts/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY ./deploy
     - cat changed_services.txt | python3 /scripts/get_containers.py > changed_containers.txt
+    - chmod 400 {{ task.key }}
     - rsync -avz --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no -i {{ task.key }}" ./deploy/ {{ task.target }}:/srv/deploy/
