@@ -1,0 +1,24 @@
+docker-build-deployment-{{ task.target }}:
+  stage: deploy
+  image: {{ images.docker_deploy }}
+  needs:
+    - pipeline: $PARENT_PIPELINE_ID
+      job: docker-check-changes-{{ task.target }}
+  script:
+    - cd {{ task.context|default('.') }}
+    - python3 /scripts/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY
+  artifacts:
+    paths:
+      - build.enc
+
+docker-deploy-{{ task.target }}:
+  stage: deploy
+  image: {{ docker_image }}
+  needs:
+    - docker-build-deployment-{{ task.target }}
+    - pipeline: $PARENT_PIPELINE_ID
+      job: docker-check-changes-{{ task.target }}
+  script:
+    - python3 /scripts/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY ./deploy
+    - cat changed_services.txt | python3 /scripts/get_containers.py > changed_containers.txt
+    - rsync -avz --delete --rsh=ssh -e "ssh -i {{ task.key }}" ./deploy/ {{ task.target }}:/srv/deploy/

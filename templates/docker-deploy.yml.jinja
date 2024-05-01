@@ -1,54 +1,45 @@
 stages:
   - check
-  - deploy
-
-{% set docker_image = 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:latest' %}
 
 docker-check-changes-{{ task.target }}:
   stage: check
-  image: {{ docker_image }}
+  image: {{ images.docker_deployer }}
   script:
     - INITIAL_DIR=$(pwd)
     - cd {{ task.context|default('.') }}
     - python3 /scripts/get_changes.py > "$INITIAL_DIR/changed_services.txt"
-    - cd -
+  artifacts:
+    paths:
+      - changed_services.txt
+
+docker-deploy-build-downstream-{{ task.target }}:
+  stage: check
+  image: {{ images.hephaestus }}
+  needs:
+    - docker-check-changes-{{ task.target }}
+    - pipeline: $ROOT_PIPELINE_ID
+      job: generate
+  script:
     - |
       if ! grep -q '[^[:space:]]' changed_services.txt; then
         echo "No changes detected"
-        touch report.env
-        exit 0
+        python3 /pipelines/render_template.py task.index noop > "$INITIAL_DIR/generated_pipeline.yml"
       else
-        echo "HAS_CHANGES=1" >> report.env
+        python3 /pipelines/render_template.py task.index docker-deploy-downstream > "$INITIAL_DIR/generated_pipeline.yml"
       fi
   artifacts:
     paths:
       - changed_services.txt
-    reports:
-      dotenv: report.env
+      - generated_pipeline.yml
 
-docker-build-deployment-{{ task.target }}:
-  stage: deploy
-  image: {{ docker_image }}
+docker-deploy-trigger:
+  stage: check
   needs:
-    - docker-check-changes-{{ task.target }}
-  rules:
-    - if: "$HAS_CHANGES"
-  script:
-    - cd {{ task.context|default('.') }}
-    - python3 /scripts/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY
-  artifacts:
-    paths:
-      - build.enc
-
-docker-deploy-{{ task.target }}:
-  stage: deploy
-  image: {{ docker_image }}
-  needs:
-    - docker-check-changes-{{ task.target }}
-    - docker-build-deployment-{{ task.target }}
-  rules:
-    - if: '$HAS_CHANGES'
-  script:
-    - python3 /scripts/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY ./deploy
-    - cat changed_services.txt | python3 /scripts/get_containers.py > changed_containers.txt
-    - rsync -avz --delete --rsh=ssh -e "ssh -i {{ task.key }}" ./deploy/ {{ task.target }}:/srv/deploy/
+    - docker-deploy-build-downstream-{{ task.target }}
+  trigger:
+    include:
+      artifact:
+        - generated_pipeline.yml
+  variables:
+    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+    ROOT_PIPELINE_ID: $ROOT_PIPELINE_ID

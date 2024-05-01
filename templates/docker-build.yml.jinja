@@ -2,11 +2,9 @@ stages:
   - build
   - push
 
-{% set docker_image = 'docker:26.0.2' %}
-
 docker-build-{{ task.image }}:
   stage: build
-  image: {{ docker_image }}
+  image: {{ images.docker }}
   script:
     - >-
         docker build
@@ -21,7 +19,7 @@ docker-push:{{ registry }}:{{ tag }}:
   stage: push
   needs:
     - docker-build-{{ task.image }}
-  image: {{ docker_image }}
+  image: {{ images.docker }}
   {% if helpers.should_use_manual_push(task, tag_source, env) %}
   when: manual
   {% endif %}

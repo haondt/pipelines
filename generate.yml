@@ -10,19 +10,21 @@ generate:
   stage: bootstrap
   image: registry.gitlab.com/haondt/cicd/registry/hephaestus:1.0.0
   script:
+    - INITIAL_DIR=$(pwd)
     - |
       if  [ ! -f pipeline.yml ]; then
         echo "Error: pipeline.yml not found"
         exit 1
       fi
-    - git clone https://gitlab.com/haondt/CICD/pipelines ./pipelines
-    - cp pipeline.yml ./pipelines/
-    - cd ./pipelines
+    - git clone https://gitlab.com/haondt/CICD/pipelines /pipelines
+    - cp pipeline.yml /pipelines/
+    - cd /pipelines
     - echo "generating downstream pipeline"
-    - python3 generate.py > ../generated_pipeline.yml
+    - python3 generate.py > "$INITIAL_DIR/generated_pipeline.yml"
   artifacts:
     paths:
       - generated_pipeline.yml
+      - /pipelines
     expire_in: 10 minutes
 
 trigger:
