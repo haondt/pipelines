@@ -20,10 +20,9 @@ docker-deploy-build-downstream-{{ task.target }}:
     - pipeline: $ROOT_PIPELINE_ID
       job: generate
   script:
-    - ls
     - cd pipelines
     - |
-      if ! grep -q '[^[:space:]]' changed_services.txt; then
+      if ! grep -q '[^[:space:]]' ../changed_services.txt; then
         echo "No changes detected"
         python3 render_template.py task.index noop > "../generated_pipeline.yml"
       else
