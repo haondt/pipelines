@@ -17,6 +17,7 @@ generate:
       fi
     - git clone https://gitlab.com/haondt/CICD/pipelines ./pipelines
     - echo "generating downstream pipeline"
+    - cp pipeline.yml pipelines
     - cd pipelines
     - python3 generate.py > "../generated_pipeline.yml"
   artifacts:
