@@ -38,8 +38,8 @@ docker-deploy-trigger:
     - docker-deploy-build-downstream-{{ task.target }}
   trigger:
     include:
-      artifact:
-        - generated_pipeline.yml
+      - artifact: generated_pipeline.yml
+        job: docker-deploy-build-downstream-{{ task.target }}
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
     ROOT_PIPELINE_ID: $ROOT_PIPELINE_ID
