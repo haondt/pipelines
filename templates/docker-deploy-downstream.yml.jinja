@@ -19,7 +19,9 @@ docker-deploy-{{ task.target }}:
     - pipeline: $PARENT_PIPELINE_ID
       job: docker-check-changes-{{ task.target }}
   script:
-    - python3 /scripts/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY ./deploy
     - cat changed_services.txt | python3 /scripts/get_containers.py > changed_containers.txt
+    - up_command="cd /srv/deploy && docker compose up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < changed_containers.txt)"
+    - python3 /scripts/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY ./deploy
     - chmod 400 {{ task.key }}
     - rsync -az --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no -i {{ task.key }}" ./deploy/ {{ task.target }}:/srv/deploy/
+    - ssh -o StrictHostKeyChecking=no -i {{ task.key }} {{ task.target }} "$up_command"
