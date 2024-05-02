@@ -10,7 +10,7 @@ def get_version(env):
     return version
 
 def should_use_manual_push(task, env):
-    auto_push_on = task.get('auto_push_on')
+    auto_push_on = task.get('auto')
     if auto_push_on is None:
         return True
 

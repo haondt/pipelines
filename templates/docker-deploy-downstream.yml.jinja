@@ -14,6 +14,9 @@ docker-build-deployment-{{ task.target }}:
 docker-deploy-{{ task.target }}:
   stage: deploy
   image: {{ images.docker_deployer }}
+  {% if helpers.should_use_manual_push(task, env) %}
+  when: manual
+  {% endif %}
   needs:
     - docker-build-deployment-{{ task.target }}
     - pipeline: $PARENT_PIPELINE_ID

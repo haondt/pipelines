@@ -11,7 +11,7 @@ tasks:
     context: . # optional
     file: Dockefile # optional
     image: foo-image
-    auto_push_on: # optional
+    auto: # optional
       - source: push
         branch: main
         tag_source: branch
@@ -28,13 +28,20 @@ tasks:
     package: foo-package
     context: . # optional
     file: pyproject.toml # optional
-    auto_push_on: # optional
+    auto: # optional
       - source: push
       - source: web
     registries:
       - gitlab
       - pypi
       - testpypi
+  - type: docker-deploy
+    target: foo@bar
+    key: $TARGET_SSH_KEY
+    auto: # optional
+      - source: push
+        branch: main
+    
 ```
 
 `type`: can be one of
@@ -66,8 +73,8 @@ workflow:
   - `latest` - always
   - `<branch>-<short_commit_sha>` - if the pipeline is run on a branch
   - `X.Y.Z` - if the pipeline is run on a tag, in the format `vX.Y.Z`
-- the `auto_push_on` entry
-  - if the job for the push matches any of the entries in `auto_push_on`, it will trigger immediately, otherwise it will be a manual job.
+- the `auto` entry
+  - if the job for the push matches any of the entries in `auto`, it will trigger immediately, otherwise it will be a manual job.
     - if a filter is not present on an entry, all jobs will match it. It is **not** like saying that field should be `null`.
   - `source`: the `CI_PIPELINE_SOURCE`. Typically `push` or `web`, but any are valid
   - `branch`: the `CI_COMMIT_BRANCH`
@@ -84,6 +91,14 @@ workflow:
 **notes**
 - only works on tag pipelines
 - `auto_push`: whether or not to push automatically
-- the `auto_push_on` entry
+- the `auto` entry
   - see [docker-build](#docker-build) for basics, with a caveat:
     - only the `source` key is supported, as the job will fail on non-tag pipelines
+
+## `docker-deploy`
+
+**notes***
+- `key` should be a file that contains private ssh key to connect to the target
+- the `auto` entry
+  - see [docker-build](#docker-build) for basics, with a caveat:
+    - only the `source` and `branch` keys are supported
