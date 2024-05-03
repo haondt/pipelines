@@ -23,7 +23,7 @@ generate:
     - echo "generating downstream pipeline"
     - cp pipeline.yml pipelines
     - cd pipelines
-    - python3 generate.py > "../generated_pipeline.yml"
+    - ROOT_PIPELINE_SOURCE=$CI_PIPELINE_SOURCE python3 generate.py > "../generated_pipeline.yml"
   artifacts:
     paths:
       - generated_pipeline.yml
