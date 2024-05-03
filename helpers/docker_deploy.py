@@ -3,7 +3,7 @@ def should_use_manual_deploy(task, env):
     if auto_push_on is None:
         return True
 
-    source = env['CI_PIPELINE_SOURCE']
+    source = env['ROOT_PIPELINE_SOURCE']
     branch = env.get('CI_COMMIT_BRANCH')
 
     def check_entry(entry):

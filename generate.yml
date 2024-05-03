@@ -39,3 +39,4 @@ trigger:
         job: generate
   variables:
     ROOT_PIPELINE_ID: $CI_PIPELINE_ID
+    ROOT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE

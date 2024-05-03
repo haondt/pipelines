@@ -20,7 +20,7 @@ def should_use_manual_push(task, tag_source, env):
     if auto_push_on is None:
         return True
 
-    source = env['CI_PIPELINE_SOURCE']
+    source = env['ROOT_PIPELINE_SOURCE']
     has_tag = 'CI_COMMIT_TAG' in env
     branch = env.get('CI_COMMIT_BRANCH')
 

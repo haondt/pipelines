@@ -59,6 +59,7 @@ def get_env():
         trycpy('CI_COMMIT_TAG')
         trycpy('CI_COMMIT_BRANCH')
         cpy('CI_COMMIT_SHORT_SHA')
+        cpy('ROOT_PIPELINE_SOURCE')
         cpy('CI_PIPELINE_SOURCE')
 
         _env = env
@@ -74,6 +75,7 @@ def get_public_env():
         'CI_COMMIT_TAG',
         'CI_COMMIT_BRANCH',
         'CI_COMMIT_SHORT_SHA',
+        'ROOT_PIPELINE_SOURCE'
         'CI_PIPELINE_SOURCE'
         ]:
         if key in private_env:

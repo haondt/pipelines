@@ -14,7 +14,7 @@ def should_use_manual_push(task, env):
     if auto_push_on is None:
         return True
 
-    source = env['CI_PIPELINE_SOURCE']
+    source = env['ROOT_PIPELINE_SOURCE']
     for entry in auto_push_on:
         if 'source' not in entry:
             continue
