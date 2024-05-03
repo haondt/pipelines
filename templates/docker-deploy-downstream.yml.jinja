@@ -14,7 +14,7 @@ docker-build-deployment-{{ task.target }}:
 docker-deploy-{{ task.target }}:
   stage: deploy
   image: {{ images.docker_deployer }}
-  {% if helpers.should_use_manual_push(task, env) %}
+  {% if helpers.should_use_manual_deploy(task, env) %}
   when: manual
   {% endif %}
   needs:
