@@ -1,9 +1,9 @@
-docker-build-deployment-{{ task.target }}:
+docker-build-deployment-{{ task.target|replace('$', '') }}:
   stage: deploy
   image: {{ images.docker_deployer }}
   needs:
     - pipeline: $PARENT_PIPELINE_ID
-      job: docker-check-changes-{{ task.target }}
+      job: docker-check-changes-{{ task.target|replace('$', '') }}
   script:
     - cd {{ task.context|default('.') }}
     - python3 /scripts/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY
@@ -11,16 +11,16 @@ docker-build-deployment-{{ task.target }}:
     paths:
       - build.enc
 
-docker-deploy-{{ task.target }}:
+docker-deploy-{{ task.target|replace('$', '') }}:
   stage: deploy
   image: {{ images.docker_deployer }}
   {% if helpers.should_use_manual_deploy(task, env) %}
   when: manual
   {% endif %}
   needs:
-    - docker-build-deployment-{{ task.target }}
+    - docker-build-deployment-{{ task.target|replace('$', '') }}
     - pipeline: $PARENT_PIPELINE_ID
-      job: docker-check-changes-{{ task.target }}
+      job: docker-check-changes-{{ task.target|replace('$', '') }}
   script:
     - cat changed_services.txt | python3 /scripts/get_containers.py > changed_containers.txt
     - up_command="cd /srv/deploy && docker compose up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < changed_containers.txt)"

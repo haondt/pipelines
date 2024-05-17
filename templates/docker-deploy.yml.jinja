@@ -1,7 +1,7 @@
 stages:
   - check
 
-docker-check-changes-{{ task.target }}:
+docker-check-changes-{{ task.target|replace('$', '') }}:
   stage: check
   image: {{ images.docker_deployer }}
   script:
@@ -12,11 +12,11 @@ docker-check-changes-{{ task.target }}:
     paths:
       - changed_services.txt
 
-docker-deploy-build-downstream-{{ task.target }}:
+docker-deploy-build-downstream-{{ task.target|replace('$', '') }}:
   stage: check
   image: {{ images.hephaestus }}
   needs:
-    - docker-check-changes-{{ task.target }}
+    - docker-check-changes-{{ task.target|replace('$', '') }}
     - pipeline: $ROOT_PIPELINE_ID
       job: generate
   script:
@@ -36,11 +36,11 @@ docker-deploy-build-downstream-{{ task.target }}:
 docker-deploy-trigger:
   stage: check
   needs:
-    - docker-deploy-build-downstream-{{ task.target }}
+    - docker-deploy-build-downstream-{{ task.target|replace('$', '') }}
   trigger:
     include:
       - artifact: generated_pipeline.yml
-        job: docker-deploy-build-downstream-{{ task.target }}
+        job: docker-deploy-build-downstream-{{ task.target|replace('$', '') }}
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
     ROOT_PIPELINE_ID: $ROOT_PIPELINE_ID
