@@ -21,8 +21,19 @@ def try_get_version(tag: str):
 def deep_merge(d1, d2, conflicts="new", path=""):
     if conflicts not in ["new", "old", "err"]:
         raise ValueError("Unexpected conflict resolution:" + conflicts)
-    def merge_list(l1, l2):
-        return list(set(l1 + l2))
+    def merge_list(l1, l2): #TODO: this should also verify relative ordering of steps
+        added = set()
+        l = []
+        def add_to_l(la):
+            nonlocal added
+            nonlocal l
+            for v in la:
+                if v not in added:
+                    added.add(v)
+                    l.append(v)
+        add_to_l(l1)
+        add_to_l(l2)
+        return l
     result = d1.copy()
     for k, v in d2.items():
         if k not in result:
