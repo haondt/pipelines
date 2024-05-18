@@ -8,6 +8,7 @@ docker-check-changes-{{ task.target|replace('$', '') }}:
     - INITIAL_DIR=$(pwd)
     - cd {{ task.context|default('.') }}
     - python3 /scripts/get_changes.py > "$INITIAL_DIR/changed_services.txt"
+    - cat "$INITIAL_DIR/changed_services.txt"
   artifacts:
     paths:
       - changed_services.txt
