@@ -106,7 +106,7 @@ The following plugins are supported:
 
 ### Alternative formats
 
-The `.env` file can also be expressed as a yaml file. The file name must be either `.env.yaml` or `.env.yml`. This can be used in place of or alongside an `.env` file everywhere the `.env` file is used. For use in hydration, the keys will be [flattened](#Flattening) as part of the file parsing. This format also supports plugins, any string value that matches the above plugin format will be executed as a plugin.
+The `.env` file can also be expressed as a yaml file. The file name must be either `.env.yaml` or `.env.yml`. This can be used in place of or alongside an `.env` file everywhere the `.env` file is used. For use in hydration, the keys will be [flattened](#flattening) as part of the file parsing. This format also supports plugins, any string value that matches the above plugin format will be executed as a plugin.
 
 ## 4. Transformation
 
