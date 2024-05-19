@@ -138,22 +138,7 @@ At the time of writing, transformation and hydration of the same file is not sup
 
 ## 5. Final Steps
 
-Once everything has been hydrated, transformed and merged into the final docker compose file, it is placed in the tmp directory at `tmp/docker-compose.yml`.
-
-# Deployment
-
-The project is deployed in two steps. Firstly, the python script is run. This will run the change detection, and add the service files in `tmp`.
-It will also create a file called `changes.txt` that lists all the containers of the changed services.
-
-```shell
-python3 ./scripts/build.py
-```
-
-Next, it will call an ansible playbook, `ansible/playbooks/deploy.yml`, that will copy the files in `tmp` to the remote, and redeploy all the containers in `changes.txt`.
-
-```shell
-ansible-playbook playbooks/deploy.yml
-```
+Once everything has been hydrated, transformed and merged into the final docker compose file, the whole bundle is tar'd, encrypted and placed in `build.enc`
 
 # Flattening
 
