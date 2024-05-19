@@ -98,6 +98,7 @@ workflow:
 ## `docker-deploy`
 
 **notes**
+- requires a specific repositiory structure. See [docker deploy docs](./docker_deploy.md) for details.
 - `key` should be a file that contains private ssh key to connect to the target
 - the `auto` entry
   - see [docker-build](#docker-build) for basics, with a caveat:
