@@ -36,8 +36,8 @@ tasks:
       - pypi
       - testpypi
   - type: docker-deploy
-    target: foo@bar
-    key: $TARGET_SSH_KEY
+    target: foo@bar # this can be a static value or an env variable
+    key: $TARGET_SSH_KEY # this can be a static value or an env variable
     auto: # optional
       - source: push
         branch: main
@@ -97,7 +97,7 @@ workflow:
 
 ## `docker-deploy`
 
-**notes***
+**notes**
 - `key` should be a file that contains private ssh key to connect to the target
 - the `auto` entry
   - see [docker-build](#docker-build) for basics, with a caveat:
