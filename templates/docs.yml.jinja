@@ -5,7 +5,7 @@ stages:
 {% for source in task.sources %}
 
 {% if source.type == 'python' %}
-python-docs-build-{{ source.subpath }}:
+python-docs-build-{{ source.subpath }}-{{ source.ref }}:
   stage: build
   image: {{ images.docs }}
   script:
@@ -31,12 +31,14 @@ pages:
 {% for source in task.sources %}
 
 {% if source.type == 'python' %}
-    - python-docs-build-{{ source.subpath }}
+    - python-docs-build-{{ source.subpath }}-{{ source.ref }}
 {% endif %}
 
 {% endfor %}
 
   script:
+    - ls -la
+    - tree
     - echo "noop"
   artifacts:
     paths:
