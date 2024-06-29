@@ -11,7 +11,8 @@ def get_images():
         'docker': 'docker:26.0.2',
         'hephaestus': 'registry.gitlab.com/haondt/cicd/registry/hephaestus:1.0.0',
         'docker_deployer': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:1.1.3',
-        'python': 'registry.gitlab.com/haondt/cicd/registry/python-builder:1.0.2'
+        'python': 'registry.gitlab.com/haondt/cicd/registry/python-builder:1.0.2',
+        'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.0.0'
     }
 
 def load_file(fn):
@@ -100,6 +101,9 @@ def render_template(env, task, task_type = None):
     if task_type == 'docker-deploy-downstream':
         template = get_jinja().get_template('docker-deploy-downstream.yml.jinja')
         return template.render(helpers=docker_deploy, task=task, env=env, images=get_images())
+    if task_type == 'docs':
+        template = get_jinja().get_template('docs.yml.jinja')
+        return template.render(task=task, env=env, images=get_images())
     raise ValueError(f"unknown task type: {task_type}")
 
 def deduplicate_keys(yaml_data: str):
@@ -114,6 +118,7 @@ def main():
         'python-build',
         'docker-deploy',
         'docker-deploy-downstream',
+        'docs',
         'noop'
         ])
     args = parser.parse_args()

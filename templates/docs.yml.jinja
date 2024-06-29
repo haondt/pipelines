@@ -1,0 +1,43 @@
+stages:
+  - build
+  - deploy
+
+{% for source in task.sources %}
+
+{% if source.type == 'python' %}
+python-docs-build-{{ source.subpath }}:
+  stage: build
+  image: {{ images.docs }}
+  script:
+    - git clone {{ source.repository }}
+    - git checkout {{ source.ref }}
+    - cd {{ source.context|default('.') }}
+{% for package in source.install|default([]) %}
+    - pip install {{ package }}
+{% endfor %}
+    - mkdocs build -c -d /public/{{ source.subpath }}
+  artifacts:
+    paths:
+      - /public/{{ source.subpath }}
+{% endif %}
+
+{% endfor %}
+
+docs-deploy:
+  stage: deploy
+  needs:
+
+{% for source in task.sources %}
+
+{% if source.type == 'python' %}
+    - python-docs-build-{{ source.subpath }}:
+{% endif %}
+
+{% endfor %}
+
+  pages:
+    script:
+      - echo "noop"
+    artifacts:
+      paths:
+        - public
