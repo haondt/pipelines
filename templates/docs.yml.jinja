@@ -9,7 +9,8 @@ python-docs-build-{{ source.subpath }}:
   stage: build
   image: {{ images.docs }}
   script:
-    - git clone {{ source.repository }}
+    - git clone {{ source.repository }} target
+    - cd target
     - git checkout {{ source.ref }}
     - cd {{ source.context|default('.') }}
 {% for package in source.install|default([]) %}
