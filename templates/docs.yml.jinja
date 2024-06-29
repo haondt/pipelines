@@ -23,7 +23,7 @@ python-docs-build-{{ source.subpath }}:
 
 {% endfor %}
 
-docs-deploy:
+pages:
   stage: deploy
   needs:
 
@@ -35,9 +35,8 @@ docs-deploy:
 
 {% endfor %}
 
-  pages:
-    script:
-      - echo "noop"
-    artifacts:
-      paths:
-        - public
+  script:
+    - echo "noop"
+  artifacts:
+    paths:
+      - /public
