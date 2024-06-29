@@ -41,6 +41,19 @@ tasks:
     auto: # optional
       - source: push
         branch: main
+  - type: docs
+    sources:
+      - subpath: my-project
+        type: python
+        repository: https://gitlab.com/my/project.git
+        ref: v1.2.3
+        context: . # optional
+        install: # optional
+          - .
+          - some-package
+    auto: # optional
+      - source: push
+        branch: main
     
 ```
 
@@ -103,3 +116,18 @@ workflow:
 - the `auto` entry
   - see [docker-build](#docker-build) for basics, with a caveat:
     - only the `source` and `branch` keys are supported
+
+## `docs`
+
+**notes**
+- requires gitlab pages to be enabled on the repo
+- `sources` - list of projects to render docs for
+  - `subpath` - on the deployed project, the url for the project docs will be `/{docs-project-name}/{subpath}`
+  - `type` - type of renderer to use
+  - `repository` - path to git repo containing docs
+  - `ref` - ref (branch or tag) to checkout on project repository
+  - `context` (optional) - path (relative to project repository) to perform the build and install operations inside
+  - `install` (optional) - list of pip packages to install before generating the docs. Useful for things like [mkdocs-click](https://github.com/mkdocs/mkdocs-click).
+- the `auto` entry
+  - see [docker-build](#docker-build), works the same way
+
