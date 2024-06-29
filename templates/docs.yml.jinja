@@ -30,7 +30,7 @@ pages:
 {% for source in task.sources %}
 
 {% if source.type == 'python' %}
-    - python-docs-build-{{ source.subpath }}:
+    - python-docs-build-{{ source.subpath }}
 {% endif %}
 
 {% endfor %}
