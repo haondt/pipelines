@@ -16,10 +16,10 @@ python-docs-build-{{ source.subpath }}:
 {% for package in source.install|default([]) %}
     - pip install {{ package }}
 {% endfor %}
-    - mkdocs build -c -d /public/{{ source.subpath }}
+    - mkdocs build -c -d ../public/{{ source.subpath }}
   artifacts:
     paths:
-      - /public/{{ source.subpath }}
+      - public/{{ source.subpath }}
 {% endif %}
 
 {% endfor %}
@@ -40,4 +40,4 @@ pages:
     - echo "noop"
   artifacts:
     paths:
-      - /public
+      - public
