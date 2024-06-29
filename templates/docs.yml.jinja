@@ -9,6 +9,11 @@ python-docs-build-{{ source.subpath }}-{{ source.ref }}:
   stage: build
   image: {{ images.docs }}
   script:
+    - |
+      if [ -d public/{{ source.subpath }} ]; then
+          echo "using cached artifact"
+          exit 0
+      fi
     - git clone {{ source.repository }} target
     - cd target
     - git checkout {{ source.ref }}
@@ -20,6 +25,11 @@ python-docs-build-{{ source.subpath }}-{{ source.ref }}:
   artifacts:
     paths:
       - public/{{ source.subpath }}
+  cache:
+    key: "python-docs-build-{{ source.subpath }}-{{ source.ref }}"
+    paths:
+      - public/{{ source.subpath }}
+
 {% endif %}
 
 {% endfor %}
