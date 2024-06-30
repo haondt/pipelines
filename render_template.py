@@ -10,7 +10,7 @@ def get_images():
     return {
         'docker': 'docker:26.0.2',
         'hephaestus': 'registry.gitlab.com/haondt/cicd/registry/hephaestus:1.0.0',
-        'docker_deployer': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:1.1.3',
+        'docker_deployer': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:1.1.4',
         'python': 'registry.gitlab.com/haondt/cicd/registry/python-builder:1.0.2',
         'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.0.0'
     }
