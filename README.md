@@ -11,6 +11,10 @@ tasks:
     context: . # optional
     file: Dockefile # optional
     image: foo-image
+    platforms: # optional
+      - linux/amd64
+      - linux/i386
+      - linux/arm64
     auto: # optional
       - source: push
         branch: main
@@ -57,11 +61,7 @@ tasks:
     
 ```
 
-`type`: can be one of
-- `docker-build`
-- `python-build`
-
-Additionally, project should contain a `.gitlab-ci.yml` that references this repo, as well as overrides the pipeline triggers.
+Project should contain a `.gitlab-ci.yml` that references this repo, as well as overrides the pipeline triggers.
 By default, the pipeline only triggers on `web`.
 
 ```yml
@@ -98,12 +98,12 @@ workflow:
     - `branch`: `<branch>`, source from the branch name only
   - `has_tag`: bool, indicating if `CI_COMMIT_TAG` is present
   - note that this is not the same as setting the overall pipeline triggers, and that still needs to be set manually in your `.gitlab-ci.yml`.
+- `platforms`: specifies which platforms to compile for. By default only compiles to `linux/amd64`
 
 ## `python-build`
 
 **notes**
 - only works on tag pipelines
-- `auto_push`: whether or not to push automatically
 - the `auto` entry
   - see [docker-build](#docker-build) for basics, with a caveat:
     - only the `source` key is supported, as the job will fail on non-tag pipelines
