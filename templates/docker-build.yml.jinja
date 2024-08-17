@@ -7,7 +7,13 @@ docker-build-{{ task.image }}:
   image: {{ images.docker }}
   script:
     - >-
-        docker build
+        {% if 'platforms' in task and len(task['platforms']) > 0 %}
+        docker buildx build
+        --platform {% ','.join(task['platforms']) %}
+        --platform {% task['platforms'][0] %}
+        {% else %}
+        docker build --platform linux/amd64
+        {% endif %}
         -t {{ task.image }}
         -f {{ task.file|default('Dockerfile') }}
         {{ task.context|default('.') }}
