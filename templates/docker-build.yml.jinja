@@ -7,7 +7,7 @@ docker-build-{{ task.image }}:
   image: {{ images.docker }}
   script:
     - >-
-        {% if 'platforms' in task and len(task['platforms']) > 0 %}
+        {% if 'platforms' in task and task['platforms']|length > 0 %}
         docker buildx build
         --platform {{ task['platforms']|join(',') }}
         --platform {{ task['platforms'][0] }}
