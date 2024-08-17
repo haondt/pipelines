@@ -9,7 +9,7 @@ docker-build-{{ task.image }}:
     - >-
         {% if 'platforms' in task and len(task['platforms']) > 0 %}
         docker buildx build
-        --platform {% ','.join(task['platforms']) %}
+        --platform {% task['platforms']|join(',') %}
         --platform {% task['platforms'][0] %}
         {% else %}
         docker build --platform linux/amd64
