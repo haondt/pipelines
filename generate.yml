@@ -12,7 +12,7 @@ workflow:
 
 generate:
   stage: bootstrap
-  image: registry.gitlab.com/haondt/cicd/registry/hephaestus:1.0.0
+  image: registry.gitlab.com/haondt/cicd/registry/hephaestus:1.0.1
   script:
     - |
       if  [ ! -f pipeline.yml ]; then
