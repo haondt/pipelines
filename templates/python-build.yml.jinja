@@ -3,13 +3,19 @@ stages:
   - push
 
 {% set tag = helpers.get_version(env) %}
+{% set job_discriminator =  helpers.get_job_discriminator(task) %}
 
-python-build-{{ task.package }}:
+python-build:{{ task.package }}{{ job_discriminator }}:
   stage: build
   image: {{ images.python }}
   script:
     - cd {{ task.context|default('.') }}
-    - python3 /scripts/set-version.py -f {{ task.file|default('pyproject.toml') }} {{ tag }}
+    {% if 'inject_pyproject_version' in task -%}
+    - python3 /scripts/set-pyproject-version.py -f {{ task.inject_pyproject_version|default('pyproject.toml') }} {{ tag }}
+    {% endif -%}
+    {% if 'inject_metadata_module' in task -%}
+    - python3 /scripts/generate-metadata.py -v {{ tag }} > {{ task.inject_metadata_module|default('_metadata.py') }}
+    {% endif -%}
     - python3 -m flit build
   artifacts:
     paths:
@@ -17,11 +23,11 @@ python-build-{{ task.package }}:
       - dist/*.tar.gz
 
 {% for registry in task.registries %}
-python-push:{{ registry }}:{{ tag }}:
+python-push{{ job_discriminator }}:{{ registry }}:{{ tag }}:
   stage: push
   image: {{ images.python }}
   needs:
-    - python-build-{{ task.package }}
+    - python-build-{{ task.package }}{{ job_discriminator }}
   {% if helpers.should_use_manual_push(task, env) %}
   when: manual
   {% endif %}

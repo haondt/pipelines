@@ -23,3 +23,7 @@ def should_use_manual_push(task, env):
 
     return True
 
+def get_job_discriminator(task):
+    if 'name' in task:
+        return f':{task["name"]}'
+    return ''

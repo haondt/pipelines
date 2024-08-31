@@ -31,7 +31,9 @@ tasks:
   - type: python-build
     package: foo-package
     context: . # optional
-    file: pyproject.toml # optional
+    name: foo-package # optional
+    inject_pyproject_version: pyproject.toml # optional
+    inject_metadata_module: foo/_metadata.py # optional
     auto: # optional
       - source: push
       - source: web
@@ -107,6 +109,12 @@ workflow:
 - the `auto` entry
   - see [docker-build](#docker-build) for basics, with a caveat:
     - only the `source` key is supported, as the job will fail on non-tag pipelines
+- `name`: this will be used as a discriminator in the pipeline to avoid collisions for tasks of the same type
+- `inject_pyproject_version`: will set project.version in the given pyproject.toml file
+- `inject_metadata_module`: will create a python module at the given path with the following contents:
+```yml
+__version__ = "x.y.z"
+```
 
 ## `docker-deploy`
 

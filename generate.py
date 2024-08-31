@@ -4,8 +4,25 @@ import yaml
 
 def generate_steps(data):
     tasks = data.get('tasks', [])
+    rendered_templates = []
     env = get_env()
-    rendered_templates = [render_template(env, task) for task in tasks]
+    for task_index, task in enumerate(tasks):
+        task_env = { k:v for k,v in env.items() }
+        task_env['INTERNAL_TASK_INDEX'] = str(task_index)
+        task_env['INTERNAL_TASKS_COUNT'] = str(len(tasks))
+        rendered_templates.append(render_template(task_env, task))
+
+    allowed_top_level_merge_keys = [
+        'stages'
+    ]
+
+    loaded_templates = [yaml.safe_load(t) for t in rendered_templates]
+    jobs = [k for t in loaded_templates for k in t.keys()]
+    counts = {k: jobs.count(k) for k in set(jobs) if k not in allowed_top_level_merge_keys and jobs.count(k) > 1}
+    if len(counts) > 0:
+        rendered_counts = '\n'.join([f'{k}: {v}' for k, v in counts.items()])
+        raise Exception(f'Rendering resulted in one or more jobs with overlapping keys: \n{rendered_counts}')
+
     merged_output = {}
     for rendered in rendered_templates:
         merged_output = deep_merge(merged_output, yaml.safe_load(rendered))
