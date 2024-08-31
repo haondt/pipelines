@@ -27,7 +27,7 @@ python-push{{ job_discriminator }}:{{ registry }}:{{ tag }}:
   stage: push
   image: {{ images.python }}
   needs:
-    - python-build-{{ task.package }}{{ job_discriminator }}
+    - python-build:{{ task.package }}{{ job_discriminator }}
   {% if helpers.should_use_manual_push(task, env) %}
   when: manual
   {% endif %}
