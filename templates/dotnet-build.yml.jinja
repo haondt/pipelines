@@ -24,7 +24,7 @@ dotnet-pack:{{ helpers.sanitize_csproj(package.csproj) }}{{ job_discriminator }}
   needs:
     - dotnet-build{{ job_discriminator }}
   script:
-    - dotnet pack {{ package.csproj }} --no-build -c Release -r linux-x64 -p:PackageVersion={{ tag }} -o dist
+    - dotnet pack {{ package.csproj }} --no-build -c Release --runtime linux-x64 -p:PackageVersion={{ tag }} -o dist
   artifacts:
     paths:
       - ./dist
