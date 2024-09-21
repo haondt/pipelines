@@ -12,7 +12,10 @@ dotnet-build{{ job_discriminator }}:{{ tag }}:
   image: {{ images.dotnet }}
   script:
     {% for package in task.packages %}
-    - dotnet build {{ package.csproj }} -c Release -r {{ runtime }} -p:Version={{ tag }}
+    - dotnet build {{ package.csproj }} -c Release -r {{ runtime }} -p:Version={{ tag }} 
+    {%- if 'framework' in package and package['framework']|length > 0 -%}
+        -f {{ package.framework }}
+    {%- endif -%}
     {% endfor %}
   artifacts:
     untracked: true
@@ -26,10 +29,9 @@ dotnet-pack:{{ package_discriminator }}{{ job_discriminator }}:{{ tag }}:
   needs:
     - dotnet-build{{ job_discriminator }}:{{ tag }}
   script:
-    - dotnet pack {{ package.csproj }} --no-build -c Release --runtime {{ runtime }} -p:PackageVersion={{ tag }} -o nugets -p:RuntimeIdentifier={{ runtime }}
+    - dotnet pack {{ package.csproj }} --no-build -c Release --runtime {{ runtime }} -p:PackageVersion={{ tag }} -o nugets/{{ package_discriminator }} -p:RuntimeIdentifier={{ runtime }}
   artifacts:
-    paths:
-      - ./nugets/*
+    untracked: true
 
 {% for registry in task.registries %}
 dotnet-push{{job_discriminator}}:{{ package_discriminator }}:{{ registry }}:{{ tag }}:
@@ -43,6 +45,6 @@ dotnet-push{{job_discriminator}}:{{ package_discriminator }}:{{ registry }}:{{ t
     NUGET_SOURCE: $GITLAB_NUGET_REPOSITORY_URL
     {% endif %}
   script:
-    - dotnet nuget push ./nugets/* -s $NUGET_SOURCE -k $NUGET_API_KEY
+    - dotnet nuget push ./nugets/{{ package_discriminator }}/* -s $NUGET_SOURCE -k $NUGET_API_KEY
 {% endfor %}
 {% endfor %}
