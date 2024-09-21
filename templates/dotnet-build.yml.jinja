@@ -14,7 +14,7 @@ dotnet-build{{ job_discriminator }}:{{ package_discriminator }}:{{ tag }}:
   image: {{ images.dotnet }}
   script:
     - dotnet build {{ package.csproj }} -c Release -r {{ runtime }} -p:Version={{ tag }}
-    {%- if 'framework' in package and package['framework']|length > 0 %} -f {{ package.framework }}{% endif -%}
+    {%- if 'framework' in package and package['framework']|length > 0 %} -f {{ package.framework }}{% endif %}
   artifacts:
     paths:
       - "**/obj/**"
