@@ -5,7 +5,7 @@ stages:
 
 {% set tag = helpers.get_version(env) %}
 {% set job_discriminator = helpers.get_job_discriminator(task) %}
-{% set runtime = 'linux-x64' %}
+{% set runtime = 'any' %}
 
 dotnet-build{{ job_discriminator }}:{{ tag }}:
   stage: build
