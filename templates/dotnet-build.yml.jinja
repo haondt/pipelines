@@ -4,13 +4,14 @@ stages:
 
 {% set tag = helpers.get_version(env) %}
 {% set job_discriminator = helpers.get_job_discriminator(task) %}
+{% set runtime = 'linux-x64' %}
 
 dotnet-build{{ job_discriminator }}:
   stage: build
   image: {{ images.dotnet }}
   script:
     {% for package in task.packages %}
-    - dotnet build {{ package.csproj }} -c Release -r linux-x64 -p:Version={{ tag }}
+    - dotnet build {{ package.csproj }} -c Release -r {{ runtime }} -p:Version={{ tag }}
     {% endfor %}
   artifacts:
     paths:
@@ -24,7 +25,7 @@ dotnet-pack:{{ helpers.sanitize_csproj(package.csproj) }}{{ job_discriminator }}
   needs:
     - dotnet-build{{ job_discriminator }}
   script:
-    - dotnet pack {{ package.csproj }} --no-build -c Release --runtime linux-x64 -p:PackageVersion={{ tag }} -o dist
+    - dotnet pack {{ package.csproj }} --no-build -c Release --runtime {{ runtime }} -p:PackageVersion={{ tag }} -o nugets -p:RuntimeIdentifier={{ runtime }}
   artifacts:
     paths:
       - ./dist
