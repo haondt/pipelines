@@ -1,7 +1,7 @@
 import yaml, argparse
 from jinja2 import Environment, FileSystemLoader
 from jinja2_extensions import setup_filters
-from helpers import docker_build, python_build, docker_deploy
+from helpers import docker_build, python_build, docker_deploy, dotnet_build
 import os
 import functools
 
@@ -12,7 +12,8 @@ def get_images():
         'hephaestus': 'registry.gitlab.com/haondt/cicd/registry/hephaestus:1.0.1',
         'docker_deployer': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:1.1.5',
         'python': 'registry.gitlab.com/haondt/cicd/registry/python-builder:2.0.0',
-        'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.0.1'
+        'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.0.1',
+        'dotnet': 'registry.gitlab.com/haondt/cicd/registry/dotnet-builder:0.0.1',
     }
 
 def load_file(fn):
@@ -104,6 +105,9 @@ def render_template(env, task, task_type = None):
     if task_type == 'docs':
         template = get_jinja().get_template('docs.yml.jinja')
         return template.render(task=task, env=env, images=get_images())
+    if task_type == 'dotnet-build':
+        template = get_jinja().get_template('dotnet-build.yml.jinja')
+        return template.render(helpers=dotnet_build, task=task, env=env, images=get_images())
     raise ValueError(f"unknown task type: {task_type}")
 
 def deduplicate_keys(yaml_data: str):

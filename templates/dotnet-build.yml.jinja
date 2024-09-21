@@ -1,0 +1,32 @@
+stages:
+  - build
+  - push
+
+{% set tag = helpers.get_version(env) %}
+{% set job_discriminator = helpers.get_job_discriminator(task) %}
+
+dotnet-build:{{ job_discriminator }}:
+  stage: build
+  image: {{ images.dotnet }}
+  script:
+    {% for package in packages %}
+    - dotnet build {{ package.csproj }} -c Release -r linux-x64 -p:Version={{ tag }}
+    {% endfor %}
+  artifacts:
+    paths:
+      - **/obj/*
+      - **/bin/*
+
+{% for package in packages %}
+dotnet-pack:{{ helpers.santize_csproj(package.csproj) }}{{ job_discriminator }}:
+  stage: build
+  image: {{ images.dotnet }}
+  needs:
+    - dotnet-build:{{ job_discriminator }}:
+  script:
+    - dotnet pack {{ package.csproj }} --no-build -c Release -p:PackageVersion={{ tag }} -o dist
+  artifacts:
+    paths:
+      - ./dist
+      - **/bin/*
+{% endfor %}
