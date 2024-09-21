@@ -18,7 +18,7 @@ dotnet-build{{ job_discriminator }}:
       - "**/bin/*"
 
 {% for package in task.packages %}
-dotnet-pack:{{ helpers.santize_csproj(package.csproj) }}{{ job_discriminator }}:
+dotnet-pack:{{ helpers.sanitize_csproj(package.csproj) }}{{ job_discriminator }}:
   stage: build
   image: {{ images.dotnet }}
   needs:
