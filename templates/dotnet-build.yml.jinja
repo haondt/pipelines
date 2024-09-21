@@ -6,7 +6,7 @@ stages:
 {% set job_discriminator = helpers.get_job_discriminator(task) %}
 {% set runtime = 'linux-x64' %}
 
-dotnet-build{{ job_discriminator }}:
+dotnet-build{{ job_discriminator }}:{{ tag }}:
   stage: build
   image: {{ images.dotnet }}
   script:
@@ -19,14 +19,30 @@ dotnet-build{{ job_discriminator }}:
       - "**/bin/**"
 
 {% for package in task.packages %}
-dotnet-pack:{{ helpers.sanitize_csproj(package.csproj) }}{{ job_discriminator }}:
+{{ set package_discriminator = helpers.sanitize_csproj(package.csproj) }}
+dotnet-pack:{{ package_discriminator }}{{ job_discriminator }}:{{ tag }}:
   stage: build
   image: {{ images.dotnet }}
   needs:
-    - dotnet-build{{ job_discriminator }}
+    - dotnet-build{{ job_discriminator }}:{{ tag }}
   script:
     - dotnet pack {{ package.csproj }} --no-build -c Release --runtime {{ runtime }} -p:PackageVersion={{ tag }} -o nugets -p:RuntimeIdentifier={{ runtime }}
   artifacts:
     paths:
       - ./nugets/*
+
+{% for registry in registries %}
+dotnet-push{{job_discriminator}}:{{ package_discriminator }}:{{ registry }}:{{ tag }}:
+  stage: push
+  image: {{ images.dotnet }}
+  needs:
+    - dotnet-pack:{{ package_discriminator }}{{ job_discriminator }}:{{ tag }}
+  variables:
+    {% if registry == 'gitlab' %}
+    NUGET_API_KEY: $GITLAB_CR_PASSWORD
+    NUGET_SOURCE: $GITLAB_NUGET_REPOSITORY_URL
+    {% endif %}
+  script:
+    - dotnet nuget push ./nugets/* -s $NUGET_SOURCE -k $NUGET_API_KEY
+{% endfor %}
 {% endfor %}
