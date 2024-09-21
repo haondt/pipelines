@@ -9,7 +9,7 @@ dotnet-build{{ job_discriminator }}:
   stage: build
   image: {{ images.dotnet }}
   script:
-    {% for package in packages %}
+    {% for package in task.packages %}
     - dotnet build {{ package.csproj }} -c Release -r linux-x64 -p:Version={{ tag }}
     {% endfor %}
   artifacts:
@@ -17,7 +17,7 @@ dotnet-build{{ job_discriminator }}:
       - "**/obj/*"
       - "**/bin/*"
 
-{% for package in packages %}
+{% for package in task.packages %}
 dotnet-pack:{{ helpers.santize_csproj(package.csproj) }}{{ job_discriminator }}:
   stage: build
   image: {{ images.dotnet }}
