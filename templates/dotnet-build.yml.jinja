@@ -15,9 +15,8 @@ dotnet-build{{ job_discriminator }}:{{ tag }}:
     - dotnet build {{ package.csproj }} -c Release -r {{ runtime }} -p:Version={{ tag }}
     {% endfor %}
   artifacts:
-    paths:
-      - "**/obj/**"
-      - "**/bin/**"
+    untracked: true
+
 
 {% for package in task.packages %}
 {% set package_discriminator = helpers.sanitize_csproj(package.csproj) %}
