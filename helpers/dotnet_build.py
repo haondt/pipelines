@@ -29,6 +29,8 @@ def get_job_discriminator(task):
     return ''
 
 def sanitize_csproj(path):
+    while path.startswith('.') or path.startswith('/'):
+        path = path[1:]
     path = path.replace('/', ':')
     if path.endswith('.csproj'):
         path = path[:-len('.csproj')]

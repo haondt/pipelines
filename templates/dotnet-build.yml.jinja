@@ -22,7 +22,7 @@ dotnet-pack:{{ helpers.sanitize_csproj(package.csproj) }}{{ job_discriminator }}
   stage: build
   image: {{ images.dotnet }}
   needs:
-    - dotnet-build{{ job_discriminator }}:
+    - dotnet-build{{ job_discriminator }}
   script:
     - dotnet pack {{ package.csproj }} --no-build -c Release -p:PackageVersion={{ tag }} -o dist
   artifacts:
