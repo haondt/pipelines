@@ -15,8 +15,8 @@ dotnet-build{{ job_discriminator }}:
     {% endfor %}
   artifacts:
     paths:
-      - "**/obj/*"
-      - "**/bin/*"
+      - "**/obj/**"
+      - "**/bin/**"
 
 {% for package in task.packages %}
 dotnet-pack:{{ helpers.sanitize_csproj(package.csproj) }}{{ job_discriminator }}:
@@ -28,6 +28,5 @@ dotnet-pack:{{ helpers.sanitize_csproj(package.csproj) }}{{ job_discriminator }}
     - dotnet pack {{ package.csproj }} --no-build -c Release --runtime {{ runtime }} -p:PackageVersion={{ tag }} -o nugets -p:RuntimeIdentifier={{ runtime }}
   artifacts:
     paths:
-      - ./dist
-      - "**/bin/*"
+      - ./nugets/*
 {% endfor %}
