@@ -20,7 +20,7 @@ docker-build-{{ task.image }}:
 
 {% for registry in task.registries %}
 {% for tag_source, tag  in helpers.get_tags(env).items() %}
-docker-push:{{ registry }}:{{ tag }}:
+docker-push-{{ task.image }}:{{ registry }}:{{ tag }}:
   stage: push
   needs:
     - docker-build-{{ task.image }}
