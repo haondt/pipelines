@@ -1,5 +1,6 @@
 stages:
   - build
+  - pack
   - push
 
 {% set tag = helpers.get_version(env) %}
@@ -21,7 +22,7 @@ dotnet-build{{ job_discriminator }}:{{ tag }}:
 {% for package in task.packages %}
 {% set package_discriminator = helpers.sanitize_csproj(package.csproj) %}
 dotnet-pack:{{ package_discriminator }}{{ job_discriminator }}:{{ tag }}:
-  stage: build
+  stage: pack
   image: {{ images.dotnet }}
   needs:
     - dotnet-build{{ job_discriminator }}:{{ tag }}
@@ -31,7 +32,7 @@ dotnet-pack:{{ package_discriminator }}{{ job_discriminator }}:{{ tag }}:
     paths:
       - ./nugets/*
 
-{% for registry in registries %}
+{% for registry in task.registries %}
 dotnet-push{{job_discriminator}}:{{ package_discriminator }}:{{ registry }}:{{ tag }}:
   stage: push
   image: {{ images.dotnet }}
