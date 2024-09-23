@@ -21,14 +21,20 @@ docker-deploy-{{ task.target|replace('$', '') }}:
   {% if helpers.should_use_manual_deploy(task, env) %}
   when: manual
   {% endif %}
+  variables:
+    {% if name in task %}
+    DEPLOYMENT_NAME: {{ task.name }}
+    {% else %}
+    DEPLOYMENT_NAME: $CI_PROJECT_NAME
+    {% endif %}
   needs:
     - docker-build-deployment-{{ task.target|replace('$', '') }}
     - pipeline: $PARENT_PIPELINE_ID
       job: docker-check-changes-{{ task.target|replace('$', '') }}
   script:
     - cat changed_services.txt | python3 /scripts/get_containers.py > changed_containers.txt
-    - up_command="cd /srv/deploy/$CI_PROJECT_NAME && docker compose up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < changed_containers.txt)"
+    - up_command="cd /srv/deploy/$DEPLOYMENT_NAME && docker compose up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < changed_containers.txt)"
     - python3 /scripts/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY ./deploy
     - chmod 400 {{ task.key }}
-    - rsync -az --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no -o LogLevel=ERROR -i {{ task.key }}" ./deploy/ {{ task.target }}:/srv/deploy/$CI_PROJECT_NAME/
+    - rsync -az --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no -o LogLevel=ERROR -i {{ task.key }}" ./deploy/ {{ task.target }}:/srv/deploy/$DEPLOYMENT_NAME/
     - ssh -o StrictHostKeyChecking=no -o LogLevel=ERROR -i {{ task.key }} {{ task.target }} "$up_command"
