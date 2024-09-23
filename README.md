@@ -44,6 +44,7 @@ tasks:
   - type: docker-deploy
     target: foo@bar # this can be a static value or an env variable
     key: $TARGET_SSH_KEY # this can be a static value or an env variable
+    url: https://foo.com # optional
     auto: # optional
       - source: push
         branch: main
@@ -60,6 +61,15 @@ tasks:
     auto: # optional
       - source: push
         branch: main
+  - type: dotnet-build
+    auto: # optional
+      - source: push
+        branch: main
+    packages:
+      - csproj: ./My.Project/My.Project.csproj
+        framework: net8.0 # optional
+    registries:
+      - gitlab
     
 ```
 
@@ -124,6 +134,7 @@ __version__ = "x.y.z"
 - the `auto` entry
   - see [docker-build](#docker-build) for basics, with a caveat:
     - only the `source` and `branch` keys are supported
+- `url`: optional, descrimes the url of the deployment environment
 
 ## `docs`
 
@@ -139,3 +150,12 @@ __version__ = "x.y.z"
 - the `auto` entry
   - see [docker-build](#docker-build), works the same way
 
+## `dotnet-build`
+
+**notes**
+- only works on tag pipelines
+- the `auto` entry
+  - see [docker-build](#docker-build) for basics, with a caveat:
+    - only the `source` key is supported, as the job will fail on non-tag pipelines
+- `name`: this will be used as a discriminator in the pipeline to avoid collisions for tasks of the same type
+- `framework`: optional, can be used to se the framework of the package. defaults to net8.0.
