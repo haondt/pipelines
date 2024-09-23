@@ -14,11 +14,10 @@ docker-build-deployment-{{ task.target|replace('$', '') }}:
 docker-deploy-{{ task.target|replace('$', '') }}:
   stage: deploy
   image: {{ images.docker_deployer }}
+  {% if environment in task %}
   environment:
-    name: {{ task.target }}
-    {% if url in task %}
-    url: {{ task.url }}
-    {% endif %}
+    name: {{ task.environment }}
+  {% endif %}
   {% if helpers.should_use_manual_deploy(task, env) %}
   when: manual
   {% endif %}
