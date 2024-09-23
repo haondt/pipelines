@@ -22,7 +22,7 @@ docker-deploy-{{ task.target|replace('$', '') }}:
   when: manual
   {% endif %}
   variables:
-    {% if name in task %}
+    {% if 'name' in task %}
     DEPLOYMENT_NAME: {{ task.name }}
     {% else %}
     DEPLOYMENT_NAME: $CI_PROJECT_NAME
