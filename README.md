@@ -67,7 +67,6 @@ tasks:
         branch: main
     packages:
       - csproj: ./My.Project/My.Project.csproj
-        framework: net8.0 # optional
     registries:
       - gitlab
     
@@ -158,4 +157,3 @@ __version__ = "x.y.z"
   - see [docker-build](#docker-build) for basics, with a caveat:
     - only the `source` key is supported, as the job will fail on non-tag pipelines
 - `name`: this will be used as a discriminator in the pipeline to avoid collisions for tasks of the same type
-- `framework`: optional, can be used to se the framework of the package. defaults to net8.0.
