@@ -10,7 +10,7 @@ def generate_steps(data):
         task_env = { k:v for k,v in env.items() }
         task_env['INTERNAL_TASK_INDEX'] = str(task_index)
         task_env['INTERNAL_TASKS_COUNT'] = str(len(tasks))
-        rendered_templates.append(render_template(task_env, task))
+        rendered_templates.append(render_template(task_env, {}, task))
 
     allowed_top_level_merge_keys = [
         'stages'
