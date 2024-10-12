@@ -139,9 +139,10 @@ def main():
     template_name = args.template
     task_i = args.task_index
     xtra = {}
-    for pair in args.xtra:
-        key, value = pair.split('=')
-        xtra[key] = value
+    if args.xtra is not None:
+        for pair in args.xtra:
+            key, value = pair.split('=')
+            xtra[key] = value
 
     data = load_pipeline_config()
     task = data['tasks'][int(task_i)]
