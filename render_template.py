@@ -13,7 +13,7 @@ def get_images():
         'docker_deployer': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:1.1.8',
         'docker_deployer_v2': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:2.1.1',
         'python': 'registry.gitlab.com/haondt/cicd/registry/python-builder:2.0.1',
-        'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.0.1',
+        'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.0.4',
         'dotnet': 'registry.gitlab.com/haondt/cicd/registry/dotnet-builder:0.0.2',
     }
 

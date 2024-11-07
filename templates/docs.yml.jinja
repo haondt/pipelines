@@ -4,31 +4,88 @@ stages:
 
 {% for source in task.sources %}
 
-{% if source.type == 'python' %}
-python-docs-build-{{ source.subpath }}-{{ source.ref }}:
+{% if source.type == 'python' or source.type == 'mkdocs' %}
+mkdocs-docs-build-{{ source.subpath }}-{{ source.ref }}:
   stage: build
   image: {{ images.docs }}
   script:
+    - INITIAL_DIR=$(pwd)
+    {% if source.subpath %}
     - |
       if [ -d public/{{ source.subpath }} ]; then
           echo "using cached artifact"
           exit 0
       fi
+    {% endif %}
+    {% if source.repository %}
     - git clone {{ source.repository }} target
     - cd target
     - git checkout {{ source.ref }}
+    {% endif %}
     - cd {{ source.context|default('.') }}
 {% for package in source.install|default([]) %}
     - pip install {{ package }}
 {% endfor %}
-    - mkdocs build -c -d ../public/{{ source.subpath }}
+    {% if source.subpath %}
+    - mkdocs build -c -d $INITIAL_DIR/public/{{ source.subpath }}
+    {% else %}
+    - mkdocs build -c -d $INITIAL_DIR/public
+    {% endif %}
   artifacts:
     paths:
+      {% if source.subpath %}
       - public/{{ source.subpath }}
+      {% else %}
+      - public/
+      {% endif %}
+  {% if source.subpath and source.repository %}
   cache:
     key: "python-docs-build-{{ source.subpath }}-{{ source.ref }}"
     paths:
       - public/{{ source.subpath }}
+  {% endif %}
+
+{% elif source.type == 'pelican' %}
+pelican-docs-build-{{ source.subpath }}-{{ source.ref }}:
+  stage: build
+  image: {{ images.docs }}
+  script:
+    - INITIAL_DIR=$(pwd)
+    {% if source.subpath %}
+    - |
+      if [ -d public/{{ source.subpath }} ]; then
+          echo "using cached artifact"
+          exit 0
+      fi
+    {% endif %}
+    {% if source.repository %}
+    - git clone {{ source.repository }} target
+    - cd target
+    - git checkout {{ source.ref }}
+    {% endif %}
+    - cd {{ source.context|default('.') }}
+{% for package in source.install|default([]) %}
+    - pip install {{ package }}
+{% endfor %}
+    {% if source.subpath %}
+    - pelican . -o $INITIAL_DIR/public/{{ source.subpath }} -s publishconf.py
+    {% else %}
+    - pelican . -o $INITIAL_DIR/public -s publishconf.py
+    {% endif %}
+  artifacts:
+    paths:
+      {% if source.subpath %}
+      - public/{{ source.subpath }}
+      {% else %}
+      - public/
+      {% endif %}
+  {% if source.subpath and source.repository %}
+  cache:
+    key: "python-docs-build-{{ source.subpath }}-{{ source.ref }}"
+    paths:
+      - public/{{ source.subpath }}
+  {% endif %}
+
 
 {% endif %}
 
@@ -40,8 +97,10 @@ pages:
 
 {% for source in task.sources %}
 
-{% if source.type == 'python' %}
-    - python-docs-build-{{ source.subpath }}-{{ source.ref }}
+{% if source.type == 'python' or source.type == 'mkdocs' %}
+    - mkdocs-docs-build-{{ source.subpath }}-{{ source.ref }}
+{% elif source.type == 'pelican' %}
+    - pelican-docs-build-{{ source.subpath }}-{{ source.ref }}
 {% endif %}
 
 {% endfor %}
