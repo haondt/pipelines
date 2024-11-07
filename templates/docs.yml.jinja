@@ -68,9 +68,9 @@ pelican-docs-build-{{ source.subpath }}-{{ source.ref }}:
     - pip install {{ package }}
 {% endfor %}
     {% if source.subpath %}
-    - pelican . -o $INITIAL_DIR/public/{{ source.subpath }} -s publishconf.py
+    - pelican {{ source.path|default('.') }} -o $INITIAL_DIR/public/{{ source.subpath }} -s {{ source.publishconf|default('publishconf.py') }}
     {% else %}
-    - pelican . -o $INITIAL_DIR/public -s publishconf.py
+    - pelican {{ source.path|default('.') }} -o $INITIAL_DIR/public -s {{ source.publishconf|default('publishconf.py') }}
     {% endif %}
   artifacts:
     paths:
