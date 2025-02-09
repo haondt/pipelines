@@ -37,6 +37,7 @@ trigger:
     include:
       - artifact: generated_pipeline.yml
         job: generate
+    strategy: depend
   variables:
     ROOT_PIPELINE_ID: $CI_PIPELINE_ID
     ROOT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
