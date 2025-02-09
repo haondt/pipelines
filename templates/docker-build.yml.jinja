@@ -19,6 +19,7 @@ docker-build-{{ task.image }}:
         {% endif -%}
         -t {{ task.image }}
         -f {{ task.file|default('Dockerfile') }}
+        --load
         {{ task.context|default('.') }}
 
 
