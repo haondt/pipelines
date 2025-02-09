@@ -8,7 +8,7 @@ import functools
 @functools.cache
 def get_images():
     return {
-        'docker': 'docker:26.0.2',
+        'docker': 'docker:27.5.1',
         'hephaestus': 'registry.gitlab.com/haondt/cicd/registry/hephaestus:1.0.1',
         'docker_deployer': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:1.1.8',
         'docker_deployer_v2': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:2.1.1',
