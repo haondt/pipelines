@@ -158,10 +158,10 @@ The services `docker-compose.yml` file will be hydrated, along with any files li
 A hydration value can be written as `{{ plugin_name('argument1', 'argument2', ...) }}`. In this case, a plugin engine will run and try to resolve the plugin, and use that for the value. Plugins are only supported inside `env.haondt.yml` files. To use them to provide environment variables in the docker compose file, first map the plugin to the hydration environment, then hydrate the environment variable in the docker compose file (or by hydrating a `.env` file and passing that to docker composes `env_file`).
 
 The following plugins are supported:
-- `{{ secret('path/to/folder', 'SECRET_NAME') }}` - this will make a url request to Infisical to try and retrieve the secret. It requires the following env vars:
+- `{{ secret('path/to/folder', 'SECRET_NAME') }}` - this will make an api request to Infisical to try and retrieve the secret. It requires the following env vars:
   - `INFISICAL_SECRET_KEY` - the bearer token for infisical
   - `INFISICAL_URL` - the base url for infisical
-- `{{ gsm('SECRET_NAME', 'secret_tag1', 'secret_tag2', ...) }}` - this will make a url request to [Gabbro Secret Manager](https://gitlab.com/haondt/gabbro-secret-manager) to try and retrieve the secret. It requires the following env vars:
+- `{{ gsm('SECRET_NAME', 'secret_tag1', 'secret_tag2', ...) }}` - this will make an api request to [Gabbro Secret Manager](https://gitlab.com/haondt/gabbro-secret-manager) to try and retrieve the secret. It requires the following env vars:
   - `GSM_API_KEY` - the bearer token for gabbro secret manager
   - `GSM_URL` - the base url for gabbro secret manager
   - it will retrieve a secret that has the matching name and all of the tags. this must result in **exactly one** secret in the response from GSM.
