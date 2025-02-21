@@ -30,7 +30,6 @@ docker-build-{{ task.image }}:
         --label org.opencontainers.{{ label_name }} {{ (task.labels[label_name] or '')|tojson }}
         {% endif -%}
         {% endfor -%}
-        --label 
         {{ task.context|default('.') }}
 
 
