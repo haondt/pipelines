@@ -1,7 +1,6 @@
 from utils import try_get_version
 
 def get_tags(env):
-    # tags[tag_source] = tag
     tags = {
             'latest': 'latest'
             }
@@ -14,6 +13,14 @@ def get_tags(env):
         tags['commit'] = env['CI_COMMIT_BRANCH'] + '-' + env['CI_COMMIT_SHORT_SHA']
         tags['branch'] = env['CI_COMMIT_BRANCH']
     return tags
+
+def get_version(env):
+    commit_tag = env.get('CI_COMMIT_TAG')
+    if commit_tag is not None:
+        return commit_tag
+    if 'CI_COMMIT_BRANCH' in env:
+        return env['CI_COMMIT_BRANCH'] + '-' + env['CI_COMMIT_SHORT_SHA']
+    return None
 
 def should_use_manual_push(task, tag_source, env):
     auto_push_on = task.get('auto')

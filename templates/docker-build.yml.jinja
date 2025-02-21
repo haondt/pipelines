@@ -2,6 +2,7 @@ stages:
   - build
   - push
 
+{% set version = helpers.get_version(env) %}
 docker-build-{{ task.image }}:
   stage: build
   image: {{ images.docker }}
@@ -20,6 +21,16 @@ docker-build-{{ task.image }}:
         -t {{ task.image }}
         -f {{ task.file|default('Dockerfile') }}
         --load
+        {% if version != None -%}
+        --label org.opencontainers.image.version {{ version }}
+        {% endif -%}
+        --label org.opencontainers.image.created "$(date --utc --iso-8601=seconds)"
+        {% for label_name in ['authors', 'url', 'documentation', 'source', 'vendor', 'licenses', 'title', 'description'] -%}
+        {% if label_name in task.labels and task.labels[label_name] is string -%}
+        --label org.opencontainers.{{ label_name }} {{ (task.labels[label_name] or '')|tojson }}
+        {% endif -%}
+        {% endfor -%}
+        --label 
         {{ task.context|default('.') }}
 
 
