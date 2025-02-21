@@ -18,7 +18,7 @@ docker-deploy-{{ project }}:
   image: {{ images.docker_deployer_v2 }}
   {% if environment in task %}
   environment:
-    name: {{ project_config.environment }}
+    name: {{ task.environment }}
   {% endif %}
   {% if helpers.should_use_manual_deploy(task, env) %}
   when: manual
