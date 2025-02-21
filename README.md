@@ -120,7 +120,7 @@ workflow:
   - note that this is not the same as setting the overall pipeline triggers, and that still needs to be set manually in your `.gitlab-ci.yml`.
 - `platforms`: specifies which platforms to compile for. By default only compiles to `linux/amd64`
 - `labels`: specify labels for the container
-  - `authors`, `url`, `documentation`, `source`, `vendor`, `licenses`, `title`, `description`: if any of these are present, they will be copied over `org.opencontainers.<LABEL>`.
+  - `authors`, `url`, `documentation`, `source`, `vendor`, `licenses`, `title`, `description`: if any of these are present, they will be copied over to `org.opencontainers.<LABEL>`.
 
 ## `python-build`
 
