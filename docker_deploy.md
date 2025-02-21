@@ -2,7 +2,7 @@
 
 For the docker deployment pipeline, repositories require a certain structure. See [deployments](https://gitlab.com/haondt/deployments) for an example. It is structured in such a way that many services can be added without being overly repetitive or lost in giant docker files. This is achieved by segmenting services into seperate docker files, and combining them back together with a python script. The structure is more clearly defined below:
 
-## 1. Hosts
+## 1. Projects
 
 The base directory of the repository should contain one directory for each deployment project. The rest of this document is relative to the directory of the project in question.
 
