@@ -28,6 +28,15 @@ tasks:
     registries:
       - gitlab
       - docker-hub
+    labels: # optional
+      authors: ... # optional
+      url: ... # optional
+      documentation: ... # optional
+      source: ... # optional
+      vendor: ... # optional
+      licenses: ... # optional
+      title: ... # optional
+      description: ... # optional
   - type: python-build
     package: foo-package
     context: . # optional
@@ -110,6 +119,8 @@ workflow:
   - `has_tag`: bool, indicating if `CI_COMMIT_TAG` is present
   - note that this is not the same as setting the overall pipeline triggers, and that still needs to be set manually in your `.gitlab-ci.yml`.
 - `platforms`: specifies which platforms to compile for. By default only compiles to `linux/amd64`
+- `labels`: specify labels for the container
+  - `authors`, `url`, `documentation`, `source`, `vendor`, `licenses`, `title`, `description`: if any of these are present, they will be copied over `org.opencontainers.<LABEL>`.
 
 ## `python-build`
 
@@ -133,7 +144,7 @@ __version__ = "x.y.z"
 - the `auto` entry
   - see [docker-build](#docker-build) for basics, with a caveat:
     - only the `source` and `branch` keys are supported
-- `url`: optional, descrimes the url of the deployment environment
+- `url`: optional, describes the url of the deployment environment
 
 ## `docs`
 
