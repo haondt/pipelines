@@ -34,6 +34,7 @@ docker-deploy-{{ project }}:
     - pipeline: $PARENT_PIPELINE_ID
       job: docker-check-changes
   script:
+    - cat changed_services.yml
     - cat changed_services.yml | python3 /scripts/get_containers.py {{ project }} > {{ project }}_changed_containers.txt
     - up_command="cd /srv/deploy/$DEPLOYMENT_NAME && docker compose --compatibility up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < {{ project }}_changed_containers.txt)"
     - python3 /scripts/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY {{ project }} ./{{ project }}-deploy
