@@ -6,6 +6,11 @@ stages:
 docker-build-{{ task.image }}:
   stage: build
   image: {{ images.docker }}
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
   script:
     {% if task.qemu == True and 'platforms' in task and task.platforms | select('!=', 'linux/amd64') | list -%}
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
