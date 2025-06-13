@@ -168,3 +168,7 @@ __version__ = "x.y.z"
   - see [docker-build](#docker-build) for basics, with a caveat:
     - only the `source` key is supported, as the job will fail on non-tag pipelines
 - `name`: this will be used as a discriminator in the pipeline to avoid collisions for tasks of the same type
+
+## Env variables
+
+- `CI_RUNNER_HOSTING_TYPE` - set to `gitlab` to use pipelines made to run on gitlab saas runners
