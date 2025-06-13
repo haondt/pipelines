@@ -47,6 +47,13 @@ docker-push-{{ task.image }}:{{ registry }}:{{ tag }}:
   needs:
     - docker-build-{{ task.image }}
   image: {{ images.docker }}
+  {% if task.needs_dind_service == True %}
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  {% endif %}
   {% if helpers.should_use_manual_push(task, tag_source, env) %}
   when: manual
   {% endif %}
