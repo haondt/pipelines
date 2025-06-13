@@ -57,7 +57,7 @@ def get_env():
                 env[key] = os.environ[key]
 
         cpy('GITLAB_CR_REGISTRY')
-        cpy('DOCKER_HUB_REPOSITORY')
+        trycpy('DOCKER_HUB_REPOSITORY')
 
         trycpy('CI_COMMIT_TAG')
         trycpy('CI_COMMIT_BRANCH')
