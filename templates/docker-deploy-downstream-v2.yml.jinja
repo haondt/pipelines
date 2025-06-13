@@ -36,7 +36,11 @@ docker-deploy-{{ project }}:
   script:
     - cat changed_services.yml
     - cat changed_services.yml | python3 /scripts/get_containers.py {{ project }} > {{ project }}_changed_containers.txt
-    - up_command="cd /srv/deploy/$DEPLOYMENT_NAME && docker compose {% if 'podman' in task and task.podman == True %}{% else %}--compatibility{% endif %} up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < {{ project }}_changed_containers.txt)"
+    {% if 'podman' in task and task.podman == True %}
+    - up_command="cd /srv/deploy/$DEPLOYMENT_NAME && podman-compose up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < {{ project }}_changed_containers.txt)"
+    {% else %}
+    - up_command="cd /srv/deploy/$DEPLOYMENT_NAME && docker compose --compatibility up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < {{ project }}_changed_containers.txt)"
+    {% endif %}
     - python3 /scripts/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY {{ project }} ./{{ project }}-deploy
     - chmod 400 {{ project_config.key }}
     - rsync -az --delete --mkpath --rsh=ssh -e "ssh -o StrictHostKeyChecking=no -o LogLevel=ERROR -i {{ project_config.key }}" ./{{ project }}-deploy/ {{ project_config.target }}:/srv/deploy/$DEPLOYMENT_NAME/
