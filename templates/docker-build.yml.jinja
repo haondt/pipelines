@@ -3,10 +3,11 @@ stages:
   - push
 
 {% set version = helpers.get_version(env) %}
+{% set is_gitlab_runner = helpers.is_gitlab_hosted_runner(env) %}
 docker-build-{{ task.image }}:
   stage: build
   image: {{ images.docker }}
-  {% if task.needs_dind_service == True %}
+  {% if is_gitlab_runner %}
   services:
     - docker:dind
   variables:
@@ -38,16 +39,30 @@ docker-build-{{ task.image }}:
         {% endif -%}
         {% endfor -%}
         {{ task.context|default('.') }}
+    {% if is_gitlab_runner %}
+    - docker save -o {{ task.image }}.tar {{ task.image }}
+    {% endif %}
+  {% if is_gitlab_runner %}
+  artifacts:
+    paths:
+      - {{ task.image }}.tar
+  {% endif %}
 
 
 {% for registry in task.registries %}
 {% for tag_source, tag  in helpers.get_tags(env).items() %}
 docker-push-{{ task.image }}:{{ registry }}:{{ tag }}:
   stage: push
+  {% if is_gitlab_runner %}
+  needs:
+    - job: docker-build-{{ task.image }}
+      artifacts: true
+  {% else %}
   needs:
     - docker-build-{{ task.image }}
+  {% endif %}
   image: {{ images.docker }}
-  {% if task.needs_dind_service == True %}
+  {% if is_gitlab_runner %}
   services:
     - docker:dind
   variables:
@@ -58,6 +73,9 @@ docker-push-{{ task.image }}:{{ registry }}:{{ tag }}:
   when: manual
   {% endif %}
   script:
+    {% if is_gitlab_runner %}
+    - docker load -i {{ task.image }}.tar
+    {% endif %}
     {% if registry == 'gitlab' %}
     - echo "$GITLAB_CR_PASSWORD" | docker login $GITLAB_CR_REGISTRY -u $GITLAB_CR_USERNAME --password-stdin
     - docker tag {{ task.image }} {{ env.GITLAB_CR_REGISTRY}}/{{ task.image }}:{{ tag }}

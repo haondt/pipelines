@@ -54,3 +54,5 @@ def should_use_manual_push(task, tag_source, env):
             return False
     return True
 
+def is_gitlab_hosted_runner(env):
+    return env.get('CI_RUNNER_HOSTING_TYPE') == 'gitlab'

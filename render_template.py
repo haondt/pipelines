@@ -64,6 +64,7 @@ def get_env():
         cpy('CI_COMMIT_SHORT_SHA')
         cpy('ROOT_PIPELINE_SOURCE')
         cpy('CI_PIPELINE_SOURCE')
+        trycpy('CI_RUNNER_HOSTING_TYPE')
 
         _env = env
 
