@@ -28,7 +28,6 @@ docker-build-{{ task.image }}:
         {% endif -%}
         -t {{ task.image }}
         -f {{ task.file|default('Dockerfile') }}
-        --load
         {% if version != None -%}
         --label org.opencontainers.image.version="{{ version }}"
         {% endif -%}
