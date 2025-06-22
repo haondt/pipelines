@@ -10,8 +10,8 @@ def get_tags(env):
         if version is not None:
             tags['tag'] = version
     if 'CI_COMMIT_BRANCH' in env:
-        tags['commit'] = env['CI_COMMIT_BRANCH'] + '-' + env['CI_COMMIT_SHORT_SHA']
-        tags['branch'] = env['CI_COMMIT_BRANCH']
+        tags['commit'] = env['CI_COMMIT_BRANCH'].replace('/', '-') + '-' + env['CI_COMMIT_SHORT_SHA']
+        tags['branch'] = env['CI_COMMIT_BRANCH'].replace('/', '-')
     return tags
 
 def get_version(env):
