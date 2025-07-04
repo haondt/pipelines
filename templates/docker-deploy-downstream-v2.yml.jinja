@@ -12,6 +12,7 @@ docker-build-deployment-{{ project }}:
   artifacts:
     paths:
       - {{ project }}.enc
+    expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
 
 docker-deploy-{{ project }}:
   stage: deploy

@@ -21,6 +21,7 @@ python-build:{{ task.package }}{{ job_discriminator }}:
     paths:
       - dist/*.whl
       - dist/*.tar.gz
+    expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
 
 {% for registry in task.registries %}
 python-push{{ job_discriminator }}:{{ registry }}:{{ tag }}:

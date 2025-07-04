@@ -31,6 +31,7 @@ docker-deploy-build-downstream:
     paths:
       - changed_services.yml
       - generated_pipeline.yml
+    expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
 
 docker-deploy-trigger:
   stage: check

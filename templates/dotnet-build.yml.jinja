@@ -17,6 +17,7 @@ dotnet-pack{{ job_discriminator }}:{{ package_discriminator }}:{{ tag }}:
   artifacts:
     paths:
       - nugets/{{ package_discriminator }}
+    expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
 
 
 {% for registry in task.registries %}

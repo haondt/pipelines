@@ -10,6 +10,7 @@ docker-build-deployment-{{ task.target|replace('$', '') }}:
   artifacts:
     paths:
       - build.enc
+    expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
 
 docker-deploy-{{ task.target|replace('$', '') }}:
   stage: deploy

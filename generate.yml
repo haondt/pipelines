@@ -28,7 +28,6 @@ generate:
     paths:
       - generated_pipeline.yml
       - ./pipelines
-    expire_in: 1 day
 
 trigger:
   stage: bootstrap
