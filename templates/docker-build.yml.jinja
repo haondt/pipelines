@@ -21,6 +21,7 @@ docker-build-{{ task.image }}:
     {% endif -%}
     - >-
         docker buildx build
+        --progress=plain
         {% if 'platforms' in task and task['platforms']|length > 0 -%}
         --platform {{ task['platforms']|join(',') }}
         {% else -%}
