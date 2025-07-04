@@ -46,6 +46,7 @@ docker-build-{{ task.image }}:
   artifacts:
     paths:
       - {{ task.image }}.tar
+    expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
   {% endif %}
 
 

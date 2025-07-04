@@ -66,6 +66,9 @@ def get_env():
         cpy('CI_PIPELINE_SOURCE')
         trycpy('CI_RUNNER_HOSTING_TYPE')
 
+        env['DEFAULT_ARTIFACT_EXPIRY'] = '1 day'
+        trycpy('DEFAULT_ARTIFACT_EXPIRY')
+
         _env = env
 
     return _env
@@ -80,7 +83,8 @@ def get_public_env():
         'CI_COMMIT_BRANCH',
         'CI_COMMIT_SHORT_SHA',
         'ROOT_PIPELINE_SOURCE'
-        'CI_PIPELINE_SOURCE'
+        'CI_PIPELINE_SOURCE',
+        'DEFAULT_ARTIFACT_EXPIRY'
         ]:
         if key in private_env:
             env[key] = private_env[key]
