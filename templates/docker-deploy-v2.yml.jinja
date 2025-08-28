@@ -5,7 +5,7 @@ docker-check-changes:
   stage: check
   image: {{ images.docker_deployer_v2 }}
   script:
-    - python3 /scripts/get_changes.py > changed_services.yml
+    - python3 pipelines/scripts/docker-deployer/get_changes.py > changed_services.yml
     - cat changed_services.yml
   artifacts:
     paths:

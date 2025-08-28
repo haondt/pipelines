@@ -8,7 +8,7 @@ docker-build-deployment-{{ project }}:
     - pipeline: $PARENT_PIPELINE_ID
       job: docker-check-changes
   script:
-    - python3 /scripts/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY {{ project }}
+    - python3 pipelines/scripts/docker-deployer/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY {{ project }}
   artifacts:
     paths:
       - {{ project }}.enc
@@ -36,13 +36,13 @@ docker-deploy-{{ project }}:
       job: docker-check-changes
   script:
     - cat changed_services.yml
-    - cat changed_services.yml | python3 /scripts/get_containers.py {{ project }} > {{ project }}_changed_containers.txt
+    - cat changed_services.yml | python3 pipelines/scripts/docker-deployer/get_containers.py {{ project }} > {{ project }}_changed_containers.txt
     {% if 'podman' in task and task.podman == True %}
     - up_command="cd /srv/deploy/$DEPLOYMENT_NAME && podman-compose up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < {{ project }}_changed_containers.txt)"
     {% else %}
     - up_command="cd /srv/deploy/$DEPLOYMENT_NAME && docker compose --compatibility up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < {{ project }}_changed_containers.txt)"
     {% endif %}
-    - python3 /scripts/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY {{ project }} ./{{ project }}-deploy
+    - python3 pipelines/scripts/docker-deployer/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY {{ project }} ./{{ project }}-deploy
     - chmod 400 {{ project_config.key }}
     - rsync -az --delete --mkpath --rsh=ssh -e "ssh -o StrictHostKeyChecking=no -o LogLevel=ERROR -i {{ project_config.key }}" ./{{ project }}-deploy/ {{ project_config.target }}:/srv/deploy/$DEPLOYMENT_NAME/
     - ssh -o StrictHostKeyChecking=no -o LogLevel=ERROR -i {{ project_config.key }} {{ project_config.target }} "$up_command"
