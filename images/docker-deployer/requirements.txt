@@ -1,0 +1,4 @@
+GitPython
+PyYaml
+requests
+cryptography

@@ -1,0 +1,8 @@
+tasks:
+  - type: docker-build
+    image: docker-deployer
+    custom_tags:
+      - v2.5.0
+    registries:
+      - gitlab
+
