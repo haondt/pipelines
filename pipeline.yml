@@ -1,6 +1,7 @@
 tasks:
   - type: docker-build
     image: docker-deployer
+    context: images/docker-deployer
     custom_tags:
       - v2.5.0
     registries:

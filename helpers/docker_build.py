@@ -13,7 +13,7 @@ def get_tags(task, env):
         tags['commit'] = env['CI_COMMIT_BRANCH'].replace('/', '-') + '-' + env['CI_COMMIT_SHORT_SHA']
         tags['branch'] = env['CI_COMMIT_BRANCH'].replace('/', '-')
 
-    custom_tags = task.get('tags')
+    custom_tags = task.get('custom_tags')
     if custom_tags is not None:
         for i, tag in enumerate(custom_tags):
             tags[f'custom-{i}'] = tag
