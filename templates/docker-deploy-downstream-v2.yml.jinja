@@ -7,6 +7,8 @@ docker-build-deployment-{{ project }}:
   needs:
     - pipeline: $PARENT_PIPELINE_ID
       job: docker-check-changes
+    - pipeline: $ROOT_PIPELINE_ID
+      job: generate
   script:
     - python3 pipelines/scripts/docker-deployer/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY {{ project }}
   artifacts:
@@ -34,6 +36,8 @@ docker-deploy-{{ project }}:
     - docker-build-deployment-{{ project }}
     - pipeline: $PARENT_PIPELINE_ID
       job: docker-check-changes
+    - pipeline: $ROOT_PIPELINE_ID
+      job: generate
   script:
     - cat changed_services.yml
     - cat changed_services.yml | python3 pipelines/scripts/docker-deployer/get_containers.py {{ project }} > {{ project }}_changed_containers.txt
