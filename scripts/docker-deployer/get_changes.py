@@ -80,7 +80,7 @@ def apply_file_changes(repo_dir: str, repo_map: RepoDiff, changed_files, previou
 
         # project was modified
         if project in repo_map.projects:
-            if repo_map.projects[project] == StatusEnum.UNCHANGED:
+            if repo_map.projects[project].status == StatusEnum.UNCHANGED:
                 repo_map.projects[project].status = StatusEnum.MODIFIED
         # project was deleted
         else:
