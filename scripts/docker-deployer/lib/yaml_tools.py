@@ -1,9 +1,20 @@
 import yaml, typing
+from .models import ProjectTypeEnum, StatusEnum
 
-def represent_none(self, _):
-    return self.represent_scalar('tag:yaml.org,2002:null', '')
+def represent_none(dumper, _):
+    return dumper.represent_scalar('tag:yaml.org,2002:null', '')
+
+def represent_set_as_list(dumper, data):
+    return dumper.represent_list(list(data))
+
+def _represent_enum(dumper, data):
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data.value)
+
+yaml.add_representer(StatusEnum, _represent_enum)
+yaml.add_representer(ProjectTypeEnum, _represent_enum)
 
 yaml.add_representer(type(None), represent_none)
+yaml.add_representer(set, represent_set_as_list)
 
 def load_file(fn):
     with open(fn, 'r') as f:
@@ -51,6 +62,7 @@ def deep_merge(d1, d2, conflicts="new", path=""):
 valueType = str|int|float|bool
 containerType = list[valueType]|dict[str,valueType]
 
+
 def to_flat_dict(data: valueType | containerType, nesting_seperator='__') -> dict[str, str]:
     def stringify(v: valueType):
         if isinstance(v, str):
@@ -80,3 +92,4 @@ def to_flat_dict(data: valueType | containerType, nesting_seperator='__') -> dic
         return {}
 
     return flatten('', data)
+
