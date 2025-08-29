@@ -1,6 +1,14 @@
 import os, yaml, shutil, sys, tempfile, re
 from types import SimpleNamespace
 from get_changes import filter_services
+if __name__ == '__main__':
+    try:
+        main()
+    # discard stack trace
+    except Exception as e:
+        print(f"{type(e).__name__}:", e, file=sys.stderr)
+        exit(1)
+
 import argparse
 
 from lib.environment import Environment
