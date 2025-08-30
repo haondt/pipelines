@@ -10,8 +10,8 @@ tasks:
 
   - type: docker-build
     image: hephaestus
-    context: images/docker-deployer
-    file: images/docker-deployer/Dockerfile
+    context: images/hephaestus
+    file: images/hephaestus/Dockerfile
     custom_tags:
       - 1.1.0
     registries:
