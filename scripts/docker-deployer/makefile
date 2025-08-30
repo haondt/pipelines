@@ -26,9 +26,8 @@ pruned-changes:
 changed-containers:
 	@[ -n "$(CHANGES)" ] || (echo "CHANGES is required"; exit 1)
 	@[ -n "$(PROJECT)" ] || (echo "PROJECT is required"; exit 1)
-	@cat ${CHANGES} | \
-		PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
-		${PYTHON} -m docker-deployer.get_containers ${PROJECT}
+	@PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
+		${PYTHON} -m docker-deployer.get_containers ${CHANGES} ${PROJECT}
 
 .PHONY: build
 build:
@@ -36,3 +35,11 @@ build:
 	@[ -n "$(CHANGES)" ] || (echo "CHANGES is required"; exit 1)
 		PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
 		${PYTHON} -m docker-deployer.build ${CHANGES} ${PROJECT} 
+
+.PHONY: untar
+untar:
+	@[ -n "$(PROJECT)" ] || (echo "PROJECT is required"; exit 1)
+	PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
+		${PYTHON} -m docker-deployer.untar ${PROJECT} ./${PROJECT}-deploy
+
+

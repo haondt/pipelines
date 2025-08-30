@@ -1,16 +1,15 @@
 import argparse
 import os, sys
 import tempfile
-from lib.tar_tools import untar, decrypt
+from .lib.tar_tools import untar, decrypt
 
 def main():
-    #  Get changes
     parser = argparse.ArgumentParser(prog='untar')
     parser.add_argument('key', help='encryption key')
     parser.add_argument('project', help='project name')
     parser.add_argument('output', help='output path')
     args = parser.parse_args()
-    encryption_key = args.key
+    encryption_key = os.environ['GITLAB_DOCKER_BUILD_ENCRYPTION_KEY']
     project = args.project
     with tempfile.TemporaryDirectory() as td:
         tf = os.path.join(td, f'{project}.tar.gz')

@@ -1,25 +1,23 @@
-import yaml, argparse, os, sys
-
-def get_containers(project, service) -> list[str]:
-    path = os.path.join(project, 'services', service, 'docker-compose.yml') 
-    if not os.path.isfile(path):
-        raise ValueError(f"no such file: {path}")
-    with open(path, 'r') as f:
-        data = yaml.safe_load(f)
-    return list(data['services'].keys())
+import yaml, argparse
 
 def main():
-    parser = argparse.ArgumentParser(prog='docker-build')
+    parser = argparse.ArgumentParser(prog='get-containers')
+    parser.add_argument('changes', help='repository map')
     parser.add_argument('project', help='services to get containers from')
     args = parser.parse_args()
-    services = yaml.safe_load(sys.stdin.read())[args.project]
-    containers = [c for s in services for c in get_containers(args.project, s)]
-    print('\n'.join(containers))
+
+    with open(args.changes) as f:
+        data = yaml.safe_load(f)
+
+    if args.project not in data['projects']:
+        return
+
+    if data['projects'][args.project]['status'] == 'modified':
+        print('\n'.join(data['projects'][args.project]['services'].keys()))
+    else:
+        for k, v in data['projects'][args.project]['services'].items():
+            if v['status'] == 'modified':
+                print(k)
 
 if __name__ == '__main__':
-    try:
-        main()
-    # discard stack trace
-    except Exception as e:
-        print(f"{type(e).__name__}:", e, file=sys.stderr)
-        exit(1)
+    main()
