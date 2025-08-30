@@ -4,7 +4,16 @@ tasks:
     context: images/docker-deployer
     file: images/docker-deployer/Dockerfile
     custom_tags:
-      - 2.5.0
+      - 2.3.0
+    registries:
+      - gitlab
+
+  - type: docker-build
+    image: docker-deployer
+    context: images/docker-deployer
+    file: images/docker-deployer/Dockerfile
+    custom_tags:
+      - 1.1.0
     registries:
       - gitlab
 
