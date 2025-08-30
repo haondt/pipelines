@@ -2,3 +2,5 @@ GitPython
 PyYaml
 requests
 cryptography
+kubernetes
+pydantic
