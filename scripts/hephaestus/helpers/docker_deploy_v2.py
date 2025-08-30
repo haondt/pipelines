@@ -34,11 +34,21 @@ def get_projects(xtra):
     result = {}
     for project, body in data['projects'].items():
         if body['status'] == 'modified':
-            result[project] = [k for k,v in body['services'].items() if v['status'] != 'removed']
+            services = [k for k,v in body['services'].items() if v['status'] != 'removed'],
+            if len(services) > 0:
+                result[project] = {
+                    "services": services,
+                    "type": body['type']
+                }
         # ignore removed.. TODO
         elif body['status'] == 'unchanged':
             # also ignoring removed...
-            result[project] = [k for k,v in body['services'].items() if v['status'] == 'modified']
+            services = [k for k,v in body['services'].items() if v['status'] == 'modified'],
+            if len(services) > 0:
+                result[project] = {
+                    "services": services,
+                    "type": body['type']
+                }
     return result
 
 def get_project_config(xtra, project):
