@@ -36,6 +36,13 @@ build:
 		PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
 		${PYTHON} -m docker-deployer.build ${CHANGES} ${PROJECT} 
 
+.PHONY: build-kubernetes
+build-kubernetes:
+	@[ -n "$(PROJECT)" ] || (echo "PROJECT is required"; exit 1)
+	@[ -n "$(APP)" ] || (echo "APP is required"; exit 1)
+		PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
+		${PYTHON} -m docker-deployer.kubernetes.build ${APP} ${PROJECT}
+
 .PHONY: untar
 untar:
 	@[ -n "$(PROJECT)" ] || (echo "PROJECT is required"; exit 1)

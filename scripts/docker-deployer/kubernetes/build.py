@@ -1,64 +1,160 @@
-import argparse
+import argparse, yaml, os, sys
+from ..lib.environment import Environment
+from ..lib.yaml_tools import deep_merge, load_file as load_yaml_file
+from ..lib.hydration import hydrate_string
+from types import SimpleNamespace
+from datetime import datetime, timezone
+
+COMPONENT_KEY = 'COM_HAONDT_COMPONENT'
+
+def load_file(fn):
+    if os.path.isfile(fn):
+        with open(fn, 'r') as f:
+            return f.read()
+    return None
+
+def load_existing_file(fn):
+    if os.path.isfile(fn):
+        with open(fn, 'r') as f:
+            return f.read()
+    raise ValueError(f"Could not find file {fn}")
+
+def build_app_yaml(project, app_dir_name, base_env: Environment, app_base_yaml: str | None, component_base_yaml: str | None):
+    # create environment
+    app_env = Environment()
+    app_env.load_plugin_yaml_file(f"{project}/services/{app_dir_name}/env.haondt.yml", True)
+
+    # merge environment with base
+    app_env = base_env.combine(app_env)
+
+    # load app yaml
+    app_yaml = load_existing_file(f"{project}/services/{app_dir_name}/kubernetes.haondt.yml")
+
+    # hydrate and load app_yaml
+    app_hydrated = hydrate_string(app_yaml, app_env)
+    app_loaded = yaml.safe_load(app_hydrated)
+    
+    # hydrate and load app_base_yaml
+    if app_base_yaml is not None:
+        app_base_hydrated = hydrate_string(app_base_yaml, app_env)
+        app_base_loaded = yaml.safe_load(app_base_hydrated)
+        app_loaded = deep_merge(app_base_loaded, app_loaded)
+
+
+    # get components in app
+    if component_base_yaml is not None:
+        components = app_loaded['spec']['components'].keys()
+        for component in components:
+            # hydrate component_base_yaml with component name and app + base environment
+            component_env = app_env.copy()
+            component_env.add_value(COMPONENT_KEY, component, overwrite=True)
+            component_base_hydrated = hydrate_string(component_base_yaml, component_env)
+            component_base_loaded = yaml.safe_load(component_base_hydrated)
+
+            # merge component base yaml into app yaml
+            app_loaded = deep_merge(component_base_loaded, app_loaded)
+
+            # parse docker image
+            docker_image = app_loaded.get('spec', {}) \
+                .get('components', {}) \
+                .get(component, {}) \
+                .get('spec', {}) \
+                .get('image')
+            docker_image_version = None
+            docker_image_name = None
+            if  docker_image is not None:
+                docker_image_name, docker_image_version = parse_docker_image(docker_image)
+
+            # add defaults
+            component_static_config = get_static_default_component_yaml(
+                component,
+                component_env,
+                docker_image_version,
+                docker_image_name)
+            app_loaded = deep_merge(component_static_config, app_loaded)
+
+    # get static config
+    app_static_config = get_static_default_app_yaml(project, app_dir_name, app_env)
+    app_loaded = deep_merge(app_static_config, app_loaded)
+
+    return SimpleNamespace(dict=app_loaded, env=app_env)
+
+def parse_docker_image(spec: str) -> tuple[str | None, str | None]:
+    digest = None
+    if '@' in spec:
+        spec, digest = spec.split('@', 1)
+    if ':' in spec:
+        name, tag = spec.rsplit(':', 1)
+    else:
+        name, tag = spec, None
+    if digest:
+        tag = f"{tag or ''}@{digest}"
+    return name, tag
+
+def get_static_default_app_yaml(project_name: str, app_dir_name: str, app_env: Environment) -> dict:
+    return {
+        'metadata': {
+            'name': app_dir_name,
+            'namespace': app_dir_name,
+            'labels': {
+                'deployment.haondt.dev/managed-by': 'haondt-docker-deployer',
+                'app.kubernetes.io/managed-by': 'haondt-docker-deployer',
+                'deployment.haondt.dev/part-of': project_name,
+                'app.kubernetes.io/part-of': project_name,
+            },
+            'annotations': {
+                'deployment.haondt.dev/timestamp': datetime.now(timezone.utc).isoformat(),
+                'deployment.haondt.dev/commit': os.environ['CI_COMMIT_SHA']
+            }
+        }
+    }
+
+def get_static_default_component_yaml(component_name: str, component_env: Environment, version: str | None, image: str | None) -> dict:
+    result = {
+        'metadata': {
+            'labels': {
+                'deployment.haondt.dev/name': component_name,
+                'app.kubernetes.io/name': component_name,
+            },
+            'annotations': {
+            }
+        }
+    }
+
+    if version is not None:
+        result['metadata']['annotations']['deployment.haondt.dev/version'] = version
+        result['metadata']['annotations']['app.kubernetes.io/version'] = version
+    if image is not None:
+        result['metadata']['annotations']['deployment.haondt.dev/image'] = image
+
+    return {
+        'spec': {
+            'components': {
+                component_name: result
+            }
+        }
+    }
 
 def main():
-    parser = argparse.ArgumentParser(prog='docker-build-kubernetes')
-    parser.add_argument('key', help='encryption key')
+    parser = argparse.ArgumentParser(prog='docker-build')
+    parser.add_argument('app', help='project to build')
     parser.add_argument('project', help='project to build')
     args = parser.parse_args()
-    build_project(args.project, args.key)
 
-def build_project(project, encryption_key):
-    services = filter_services([os.path.join(project, ".haondt.yml")])[project]
+    encryption_key = os.environ['GITLAB_DOCKER_BUILD_ENCRYPTION_KEY']
 
-    # load base files
+    project = args.project
     base_env = Environment()
     base_env.load_plugin_yaml_file(os.path.join(project, "env.haondt.yml"), True)
-    base_yaml = load_file(os.path.join(project, 'docker-compose-base.haondt.yml'))
+    app_base_yaml = load_file(os.path.join(project, 'kubernetes-app-base.haondt.yml'))
+    component_base_yaml = load_file(os.path.join(project, 'kubernetes-component-base.haondt.yml'))
+    app_yaml = build_app_yaml(project, args.app, base_env, app_base_yaml, component_base_yaml) 
 
-    # generate config objects for each service
-    service_configs = [build_service_yaml(project, s, base_env, base_yaml) for s in services]
-    containers = [c for cfg in service_configs for c in cfg.dict['services'].keys()]
+    # app_yaml.dict.setdefault('metadata', {}).setdefault('namespace', args.app)
+    # app_yaml.dict['metadata'].setdefault('name', args.app)
 
-    # merge service configs
-    service_config = service_configs[0].dict.copy()
-    for cfg in service_configs[1:]:
-        service_config = deep_merge(service_config, cfg.dict, conflicts="err")
 
-    # create final file
-    final_yaml = yaml.dump(service_config, default_flow_style=False)
-
-    # save
-    with tempfile.TemporaryDirectory() as td:
-        with open(os.path.join(td, 'docker-compose.yml'), 'w') as f:
-            f.write(final_yaml)
-        with open(os.path.join(td, 'changes.txt'), 'w') as f:
-            f.write('\n'.join(containers))
-
-        # copy and hydrate extra service files
-        cpy_services(project, td, services)
-        for (i, service) in enumerate(services):
-            if os.path.isfile(f'{project}/services/{service}/hydrate.haondt.yml'):
-                to_hydrate = load_yaml_file(f'{project}/services/{service}/hydrate.haondt.yml')
-                for fn in to_hydrate:
-                    fn = fn.strip()
-                    src = os.path.join(project, 'services', service, fn)
-                    dst = os.path.join(td, service, fn)
-                    data = load_file(src)
-                    hydrated = hydrate_string(data, service_configs[i].env)
-                    with open(dst, 'w') as sf:
-                        sf.write(hydrated)
-
-            # apply transformations
-            transform_file_path = f'{project}/services/{service}/transform.haondt.yml'
-            transform_context_path = os.path.join(td, service)
-            if os.path.isfile(transform_file_path):
-                transformation_config = load_yaml_file(transform_file_path)
-                transform = Transformation(transform_context_path, transformation_config, service_configs[i].env)
-                transform.perform_transformations()
-
-        tar(td, f'{project}.tar.gz')
-
-        encrypt(encryption_key, os.path.join(td, f'{project}.tar.gz'), f'{project}.enc')
+    print(yaml.dump(app_yaml.dict))
 
 if __name__ == '__main__':
     try:

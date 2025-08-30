@@ -67,11 +67,37 @@ docker-build-deployment-{{ project }}:
     - pipeline: $ROOT_PIPELINE_ID
       job: generate
   script:
-    - python3 pipelines/scripts/docker-deployer/kubernetes/build.py {{ project }}
+    - make -f {{ scripts_dir }}/docker-deployer/makefile build-kubernetes PROJECT={{ project }}
   artifacts:
     paths:
       - {{ project }}.enc
     expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
+
+TODO: for app in project.apps, kapp deploy -a app.yaml.metadata.name -f app-manifest.yml
+docker-deploy-{{ project }}:
+  stage: deploy
+  image: {{ images.docker_deployer_v2 }}
+  {% if environment in task %}
+  environment:
+    name: {{ task.environment }}
+  {% endif %}
+  {% if helpers.should_use_manual_deploy(task, env) %}
+  when: manual
+  {% endif %}
+  variables:
+    {% if 'name' in project_config %}
+    DEPLOYMENT_NAME: {{ project_config.name }}
+    {% else %}
+    DEPLOYMENT_NAME: {{ project }}
+    {% endif %}
+  needs:
+    - docker-build-deployment-{{ project }}
+    - pipeline: $PARENT_PIPELINE_ID
+      job: docker-check-changes
+    - pipeline: $ROOT_PIPELINE_ID
+      job: generate
+  script:
+    - kapp deploy
 
 {% else %}
 
