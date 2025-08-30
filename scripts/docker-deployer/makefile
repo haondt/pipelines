@@ -18,13 +18,21 @@ changes:
 .PHONY: pruned-changes
 pruned-changes:
 	@[ -n "$(CHANGES)" ] || (echo "CHANGES is required"; exit 1)
-	@cat ${CHANGES} | yq 'del(.. | select(has("status") and .status == "unchanged"))'
+	@PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
+		${PYTHON} -m docker-deployer.get_pruned_changes ${CHANGES} | yq
+
+
+.PHONY: changed-containers
+changed-containers:
+	@[ -n "$(CHANGES)" ] || (echo "CHANGES is required"; exit 1)
+	@[ -n "$(PROJECT)" ] || (echo "PROJECT is required"; exit 1)
+	@cat ${CHANGES} | \
+		PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
+		${PYTHON} -m docker-deployer.get_containers ${PROJECT}
 
 .PHONY: build
-build: validate-deployment-args
-	@echo "Building ${PROJECT}/${SERVICE}"
-
-.PHONY: deploy
-deploy: validate-deployment-args
-	@echo "Deploying ${PROJECT}/${SERVICE}"
-
+build:
+	@[ -n "$(PROJECT)" ] || (echo "PROJECT is required"; exit 1)
+	@[ -n "$(CHANGES)" ] || (echo "CHANGES is required"; exit 1)
+		PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
+		${PYTHON} -m docker-deployer.build ${CHANGES} ${PROJECT} 

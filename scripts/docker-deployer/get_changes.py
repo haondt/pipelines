@@ -105,8 +105,6 @@ def apply_file_changes(repo_dir: str, repo_map: RepoDiff, changed_files, previou
         # ensure project exists, shouldn't happen if cicd runs on every commit
         if project not in repo_map.projects:
             repo_map.projects[project] = ProjectDiff(status=StatusEnum.REMOVED)
-        elif repo_map.projects[project].status == StatusEnum.UNCHANGED:
-            repo_map.projects[project].status = StatusEnum.MODIFIED
 
         if service in repo_map.projects[project].services:
             if repo_map.projects[project].services[service].status == StatusEnum.UNCHANGED:

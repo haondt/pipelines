@@ -13,4 +13,3 @@ render-template:
 	@[ -n "$(TEMPLATE_NAME)" ] || (echo "TEMPLATE_NAME is required"; exit 1)
 	@PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
 		${PYTHON} -m hephaestus.render_template --templates ${SCRIPT_DIR}/../templates ${TASK_INDEX} ${TEMPLATE_NAME} $(EXTRA_ARGS)
-		# ${PYTHON} -m hephaestus.generate --templates pipelines/templates  -f pipeline.yml  > "generated_pipeline.yml"

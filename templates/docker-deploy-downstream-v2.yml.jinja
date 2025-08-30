@@ -1,7 +1,10 @@
+{% set scripts_dir = 'pipelines/scripts' %}
+
 {% for project, project_map in helpers.get_projects(xtra).items() %}
 {% set project_config = helpers.get_project_config(xtra, project) %}
 
 {% if project_map.type == 'docker' %}
+
 docker-build-deployment-{{ project }}:
   stage: deploy
   image: {{ images.docker_deployer_v2 }}
@@ -11,13 +14,49 @@ docker-build-deployment-{{ project }}:
     - pipeline: $ROOT_PIPELINE_ID
       job: generate
   script:
-    - python3 pipelines/scripts/docker-deployer/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY {{ project }}
+    - make -f {{ scripts_dir }}/docker-deployer/makefile build PROJECT={{ project }} CHANGES=changed_services.yml
   artifacts:
     paths:
       - {{ project }}.enc
     expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
 
-{% elif  project_map.type == 'kubernetes2' %}
+docker-deploy-{{ project }}:
+  stage: deploy
+  image: {{ images.docker_deployer_v2 }}
+  {% if environment in task %}
+  environment:
+    name: {{ task.environment }}
+  {% endif %}
+  {% if helpers.should_use_manual_deploy(task, env) %}
+  when: manual
+  {% endif %}
+  variables:
+    {% if 'name' in project_config %}
+    DEPLOYMENT_NAME: {{ project_config.name }}
+    {% else %}
+    DEPLOYMENT_NAME: {{ project }}
+    {% endif %}
+  needs:
+    - docker-build-deployment-{{ project }}
+    - pipeline: $PARENT_PIPELINE_ID
+      job: docker-check-changes
+    - pipeline: $ROOT_PIPELINE_ID
+      job: generate
+  script:
+    - cat changed_services.yml | python3 pipelines/scripts/docker-deployer/get_containers.py {{ project }} > {{ project }}_changed_containers.txt
+    {% if 'podman' in task and task.podman == True %}
+    - up_command="cd /srv/deploy/$DEPLOYMENT_NAME && podman-compose up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < {{ project }}_changed_containers.txt)"
+    {% else %}
+    - up_command="cd /srv/deploy/$DEPLOYMENT_NAME && docker compose --compatibility up -d --force-recreate --build --remove-orphans $(tr '\n' ' ' < {{ project }}_changed_containers.txt)"
+    {% endif %}
+    - python3 pipelines/scripts/docker-deployer/untar.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY {{ project }} ./{{ project }}-deploy
+    - chmod 400 {{ project_config.key }}
+    - rsync -az --delete --mkpath --rsh=ssh -e "ssh -o StrictHostKeyChecking=no -o LogLevel=ERROR -i {{ project_config.key }}" ./{{ project }}-deploy/ {{ project_config.target }}:/srv/deploy/$DEPLOYMENT_NAME/
+    - ssh -o StrictHostKeyChecking=no -o LogLevel=ERROR -i {{ project_config.key }} {{ project_config.target }} "$up_command"
+
+{% elif  project_map.type == 'kubernetes' %}
+
+{{ raise_value_error('TODO!') }}
 
 docker-build-deployment-{{ project }}:
   stage: deploy
@@ -28,7 +67,7 @@ docker-build-deployment-{{ project }}:
     - pipeline: $ROOT_PIPELINE_ID
       job: generate
   script:
-    - python3 pipelines/scripts/docker-deployer/kubernetes/build.py $GITLAB_DOCKER_BUILD_ENCRYPTION_KEY {{ project }}
+    - python3 pipelines/scripts/docker-deployer/kubernetes/build.py {{ project }}
   artifacts:
     paths:
       - {{ project }}.enc
@@ -40,3 +79,5 @@ docker-build-deployment-{{ project }}:
 
 {% endif %}
 {% endfor %}
+
+

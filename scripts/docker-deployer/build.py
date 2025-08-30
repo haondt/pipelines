@@ -1,21 +1,12 @@
 import os, yaml, shutil, sys, tempfile, re
 from types import SimpleNamespace
-from get_changes import filter_services
-if __name__ == '__main__':
-    try:
-        main()
-    # discard stack trace
-    except Exception as e:
-        print(f"{type(e).__name__}:", e, file=sys.stderr)
-        exit(1)
-
 import argparse
 
-from lib.environment import Environment
-from lib.hydration import hydrate_string
-from lib.yaml_tools import deep_merge, load_file as load_yaml_file
-from lib.tar_tools import tar, encrypt
-from lib.transform import Transformation
+from .lib.environment import Environment
+from .lib.hydration import hydrate_string
+from .lib.yaml_tools import deep_merge, load_file as load_yaml_file
+from .lib.tar_tools import tar, encrypt
+from .lib.transform import Transformation
 
 
 CONTAINER_KEY = 'COM_HAONDT_CONTAINER'
@@ -81,17 +72,15 @@ def cpy_services(project, destination_dir, services):
         dst = os.path.join(destination_dir, svc)
         shutil.copytree(src, dst, ignore=ignore)
 
-def main():
-    parser = argparse.ArgumentParser(prog='docker-build')
-    parser.add_argument('key', help='encryption key')
-    parser.add_argument('project', help='project to build')
-    args = parser.parse_args()
-
-    build_project(args.project, args.key)
-
-
-def build_project(project, encryption_key):
-    services = filter_services([os.path.join(project, ".haondt.yml")])[project]
+def build_project(project_map: dict, encryption_key: str, project: str):
+    services: set[str] = set()
+    for k, v in project_map['services'].items():
+        if project_map['status'] == 'modified':
+            if v['status'] != 'removed':
+                services.add(k)
+        elif project_map['status'] == 'unchanged':
+            if v['status'] == 'modified':
+                services.add(k)
 
     # load base files
     base_env = Environment()
@@ -142,6 +131,20 @@ def build_project(project, encryption_key):
         tar(td, f'{project}.tar.gz')
 
         encrypt(encryption_key, os.path.join(td, f'{project}.tar.gz'), f'{project}.enc')
+
+
+def main():
+    parser = argparse.ArgumentParser(prog='docker-build')
+    parser.add_argument('changes', help='repository map')
+    parser.add_argument('project', help='project to build')
+    args = parser.parse_args()
+
+    key = os.environ['GITLAB_DOCKER_BUILD_ENCRYPTION_KEY']
+
+    with open(args.changes) as f:
+        map = yaml.safe_load(f)
+
+    build_project(map['projects'][args.project], key, args.project)
 
 if __name__ == '__main__':
     try:

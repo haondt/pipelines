@@ -31,7 +31,15 @@ def load_yaml(fn):
 
 def get_projects(xtra):
     data = load_yaml(xtra['changed_services_file'])
-    return data['projects']
+    result = {}
+    for project, body in data['projects'].items():
+        if body['status'] == 'modified':
+            result[project] = [k for k,v in body['services'] if v['status'] != 'removed']
+        # ignore removed.. TODO
+        elif body['status'] == 'unchanged':
+            # also ignoring removed...
+            result[project] = [k for k,v in body['services'] if v['status'] == 'modified']
+    return result
 
 def get_project_config(xtra, project):
     if 'project_base_dir' in xtra:
