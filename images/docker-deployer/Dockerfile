@@ -4,7 +4,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install -y \
     git \
     rsync \
-    curl
+    curl \
+    make
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
