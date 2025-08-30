@@ -9,7 +9,6 @@ docker-check-changes:
       job: generate
   script:
     - make -f pipelines/scripts/docker-deployer/makefile changes > changed_services.yml
-    - cat changed_services.yml
     - make -f pipelines/scripts/docker-deployer/makefile pruned-changes CHANGES=changed_services.yml
   artifacts:
     paths:
@@ -23,13 +22,12 @@ docker-deploy-build-downstream:
     - pipeline: $ROOT_PIPELINE_ID
       job: generate
   script:
-    - cd pipelines
     - |
-      if yq -e '.. | select(has("status") and .status != "unchanged")' ../changed_services.yml >/dev/null; then
-        python3 render_template.py {{ task.index }} docker-deploy-downstream-v2 -x project_base_dir=.. -x changed_services_file=../changed_services.yml > "../generated_pipeline.yml"
+      if yq -e '.. | select(has("status") and .status != "unchanged")' changed_services.yml >/dev/null; then
+        python3 pipelines/render_template.py {{ task.index }} docker-deploy-downstream-v2 -x project_base_dir=. -x changed_services_file=changed_services.yml > "generated_pipeline.yml"
       else
         echo "No changes detected"
-        python3 render_template.py {{ task.index }} noop > "../generated_pipeline.yml"
+        python3 pipelines/render_template.py {{ task.index }} noop > "generated_pipeline.yml"
       fi
   artifacts:
     paths:
