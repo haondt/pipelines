@@ -9,9 +9,9 @@ import functools
 def get_images():
     return {
         'docker': 'docker:27.5.1',
-        'hephaestus': 'registry.gitlab.com/haondt/cicd/registry/hephaestus:k8s-84da719d',
+        'hephaestus': 'registry.gitlab.com/haondt/cicd/registry/hephaestus:k8s-37876837',
         'docker_deployer': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:1.1.8',
-        'docker_deployer_v2': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:k8s-414e61e0',
+        'docker_deployer_v2': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:k8s-37876837',
         'python': 'registry.gitlab.com/haondt/cicd/registry/python-builder:2.0.1',
         'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.0.4',
         'dotnet': 'registry.gitlab.com/haondt/cicd/registry/dotnet-builder:0.0.2',
