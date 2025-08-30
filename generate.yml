@@ -19,7 +19,7 @@ generate:
         echo "Error: pipeline.yml not found"
         exit 1
       fi
-    - git clone --depth 1 -b main https://gitlab.com/haondt/CICD/pipelines ./pipelines
+    - git clone --depth 1 -b k8s https://gitlab.com/haondt/CICD/pipelines ./pipelines
     - echo "generating downstream pipeline"
     - cp pipeline.yml pipelines
     - cd pipelines

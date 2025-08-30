@@ -9,7 +9,7 @@ tasks:
       - gitlab
 
   - type: docker-build
-    image: docker-deployer
+    image: hephaestus
     context: images/docker-deployer
     file: images/docker-deployer/Dockerfile
     custom_tags:
