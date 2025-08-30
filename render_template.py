@@ -11,7 +11,7 @@ def get_images():
         'docker': 'docker:27.5.1',
         'hephaestus': 'registry.gitlab.com/haondt/cicd/registry/hephaestus:k8s-ad251963',
         'docker_deployer': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:1.1.8',
-        'docker_deployer_v2': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:k8s-866d5225',
+        'docker_deployer_v2': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:k8s-2f14f039',
         'python': 'registry.gitlab.com/haondt/cicd/registry/python-builder:2.0.1',
         'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.0.4',
         'dotnet': 'registry.gitlab.com/haondt/cicd/registry/dotnet-builder:0.0.2',
