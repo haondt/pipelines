@@ -9,6 +9,7 @@ docker-check-changes:
       job: generate
   script:
     - make -f pipelines/scripts/docker-deployer/makefile changes > changed_services.yml
+    - cat changed_services.yml
     - make -f pipelines/scripts/docker-deployer/makefile pruned-changes CHANGES=changed_services.yml
   artifacts:
     paths:
