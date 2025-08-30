@@ -31,7 +31,7 @@ def load_yaml(fn):
 
 def get_projects(xtra):
     data = load_yaml(xtra['changed_services_file'])
-    return data.projects
+    return data['projects']
 
 def get_project_config(xtra, project):
     if 'project_base_dir' in xtra:

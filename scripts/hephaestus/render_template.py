@@ -1,7 +1,7 @@
 import yaml, argparse
 from jinja2 import Environment, FileSystemLoader
-from jinja2_extensions import setup_filters
-from helpers import docker_build, python_build, docker_deploy, dotnet_build, docker_deploy_v2
+from .jinja2_extensions import setup_filters
+from .helpers import docker_build, python_build, docker_deploy, dotnet_build, docker_deploy_v2
 import os
 import functools
 
@@ -21,8 +21,8 @@ def load_file(fn):
     with open(fn, 'r') as f:
         return f.read()
 
-def load_pipeline_config():
-    pipeline_file = 'pipeline.yml'
+def load_pipeline_config(file: str | None = None):
+    pipeline_file = file or 'pipeline.yml'
     data = load_yaml(pipeline_file)
     if 'tasks' not in data:
         data['tasks'] = []
@@ -35,10 +35,10 @@ def load_yaml(fn):
         return yaml.safe_load(f)
 
 _jinja_env = None
-def get_jinja():
+def get_jinja(templates: str | None = None):
     global _jinja_env
     if _jinja_env is None:
-        env = Environment(loader=FileSystemLoader('templates'))
+        env = Environment(loader=FileSystemLoader(templates or 'templates'))
         setup_filters(env)
         _jinja_env = env
     return _jinja_env
@@ -90,35 +90,35 @@ def get_public_env():
             env[key] = private_env[key]
     return env
 
-def render_template(env, xtra, task, task_type = None):
+def render_template(env, xtra, task, task_type = None, templates: str | None = None):
     task_type = task_type or task.get('type')
 
     if task_type == 'docker-build':
-        template = get_jinja().get_template('docker-build.yml.jinja')
+        template = get_jinja(templates).get_template('docker-build.yml.jinja')
         return template.render(helpers=docker_build, task=task, env=env, images=get_images())
     if task_type == 'python-build':
-        template = get_jinja().get_template('python-build.yml.jinja')
+        template = get_jinja(templates).get_template('python-build.yml.jinja')
         return template.render(helpers=python_build, task=task, env=env, images=get_images())
     if task_type == 'docker-deploy':
-        template = get_jinja().get_template('docker-deploy.yml.jinja')
+        template = get_jinja(templates).get_template('docker-deploy.yml.jinja')
         return template.render(helpers=docker_deploy, task=task, env=env, images=get_images(), xtra=xtra)
     if task_type == 'docker-deploy-v2':
-        template = get_jinja().get_template('docker-deploy-v2.yml.jinja')
+        template = get_jinja(templates).get_template('docker-deploy-v2.yml.jinja')
         return template.render(helpers=docker_deploy_v2, task=task, env=env, images=get_images(), xtra=xtra)
     if task_type == 'noop':
-        template = get_jinja().get_template('noop.yml.jinja')
+        template = get_jinja(templates).get_template('noop.yml.jinja')
         return template.render()
     if task_type == 'docker-deploy-downstream':
-        template = get_jinja().get_template('docker-deploy-downstream.yml.jinja')
+        template = get_jinja(templates).get_template('docker-deploy-downstream.yml.jinja')
         return template.render(helpers=docker_deploy, task=task, env=env, images=get_images())
     if task_type == 'docker-deploy-downstream-v2':
-        template = get_jinja().get_template('docker-deploy-downstream-v2.yml.jinja')
+        template = get_jinja(templates).get_template('docker-deploy-downstream-v2.yml.jinja')
         return template.render(helpers=docker_deploy_v2, task=task, env=env, images=get_images(), xtra=xtra)
     if task_type == 'docs':
-        template = get_jinja().get_template('docs.yml.jinja')
+        template = get_jinja(templates).get_template('docs.yml.jinja')
         return template.render(task=task, env=env, images=get_images())
     if task_type == 'dotnet-build':
-        template = get_jinja().get_template('dotnet-build.yml.jinja')
+        template = get_jinja(templates).get_template('dotnet-build.yml.jinja')
         return template.render(helpers=dotnet_build, task=task, env=env, images=get_images())
     raise ValueError(f"unknown task type: {task_type}")
 
@@ -140,6 +140,8 @@ def main():
         'noop'
         ])
     parser.add_argument('-x', '--xtra', action='append', help='extra args (key=value) to pass to the template renderer', type=str)
+    parser.add_argument('--templates', help='templates directory')
+    parser.add_argument('-f', '--file', help='pipeline file')
     args = parser.parse_args()
     template_name = args.template
     task_i = args.task_index
@@ -149,7 +151,7 @@ def main():
             key, value = pair.split('=')
             xtra[key] = value
 
-    data = load_pipeline_config()
+    data = load_pipeline_config(args.file)
     task = data['tasks'][int(task_i)]
 
     env = get_env()
@@ -157,8 +159,7 @@ def main():
     for k, v in public_env.items():
         print(f'# {k}: {v}')
 
-
-    rendered = render_template(env, xtra, task, template_name)
+    rendered = render_template(env, xtra, task, template_name, args.templates)
     dd_rendered = deduplicate_keys(rendered)
 
     print(dd_rendered)

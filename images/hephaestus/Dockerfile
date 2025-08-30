@@ -3,7 +3,8 @@ FROM python:3.12-slim-bookworm
 RUN apt update && apt install -y \
     git \
     wget \
-    tar
+    tar \
+    make
 
 ARG YQ_VERSION=v4.34.2
 ARG YQ_BINARY=yq_linux_amd64

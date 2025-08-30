@@ -1,8 +1,7 @@
 PYTHON := python3
 
-CWD := $(shell pwd)
 REPOSITORY := $(shell pwd)
-SCRIPT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+SCRIPT_DIR := $(realpath $(dir $(firstword $(MAKEFILE_LIST)))/..)
 
 DEPLOYMENT_ARGS := PROJECT SERVICE
 BUILD_ARGS := 
@@ -13,7 +12,8 @@ validate-deployment-args:
 
 .PHONY: changes
 changes:
-	@${PYTHON} ${SCRIPT_DIR}/get_changes.py ${REPOSITORY}
+	@PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
+		${PYTHON} -m docker-deployer.get_changes ${REPOSITORY}
 
 .PHONY: pruned-changes
 pruned-changes:
@@ -27,5 +27,4 @@ build: validate-deployment-args
 .PHONY: deploy
 deploy: validate-deployment-args
 	@echo "Deploying ${PROJECT}/${SERVICE}"
-
 

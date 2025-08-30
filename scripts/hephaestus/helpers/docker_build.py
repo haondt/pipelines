@@ -1,4 +1,4 @@
-from utils import try_get_version
+from ..utils import try_get_version
 
 def get_tags(task, env):
     tags = {

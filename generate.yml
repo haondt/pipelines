@@ -21,9 +21,7 @@ generate:
       fi
     - git clone --depth 1 -b k8s https://gitlab.com/haondt/CICD/pipelines ./pipelines
     - echo "generating downstream pipeline"
-    - cp pipeline.yml pipelines
-    - cd pipelines
-    - ROOT_PIPELINE_SOURCE=$CI_PIPELINE_SOURCE python3 generate.py > "../generated_pipeline.yml"
+    - make -f pipelines/makefile generate
   artifacts:
     paths:
       - generated_pipeline.yml

@@ -1,7 +1,7 @@
 {% for project, project_map in helpers.get_projects(xtra).items() %}
 {% set project_config = helpers.get_project_config(xtra, project) %}
 
-{% if project.type == 'docker' %}
+{% if project_map.type == 'docker' %}
 docker-build-deployment-{{ project }}:
   stage: deploy
   image: {{ images.docker_deployer_v2 }}
@@ -17,7 +17,7 @@ docker-build-deployment-{{ project }}:
       - {{ project }}.enc
     expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
 
-{% elif  project.type == 'kubernetes2' %}
+{% elif  project_map.type == 'kubernetes2' %}
 
 docker-build-deployment-{{ project }}:
   stage: deploy
@@ -36,7 +36,7 @@ docker-build-deployment-{{ project }}:
 
 {% else %}
 
-{% raise_value_error 'Invalid project type: ' ~ project.type %}
+{{ raise_value_error('Invalid project type: ' ~ project_map.type) }}
 
 {% endif %}
-
+{% endfor %}

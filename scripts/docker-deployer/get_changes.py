@@ -2,9 +2,9 @@ from git import Repo
 from gitdb.util import sys
 import yaml
 import re, os
-from lib import dataclasses_tools
+from .lib import dataclasses_tools
 from pathlib import Path
-from lib.models import ProjectTypeEnum, RepoDiff, ProjectDiff, ServiceDiff, StatusEnum
+from .lib.models import ProjectTypeEnum, RepoDiff, ProjectDiff, ServiceDiff, StatusEnum
 from git.exc import GitCommandError
 
 def get_file_from_commit(repo: Repo, commit, path: str) -> str | None:
