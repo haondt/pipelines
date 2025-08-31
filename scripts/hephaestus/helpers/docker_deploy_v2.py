@@ -33,29 +33,36 @@ def get_projects(xtra):
     data = load_yaml(xtra['changed_services_file'])
     result = {}
     for project, body in data['projects'].items():
+        existing_services = [k for k,v in body['services'].items() if v['status'] != 'removed']
+        modified_services = [k for k,v in body['services'].items() if v['status'] == 'modified']
+        removed_services = [k for k,v in body['services'].items() if v['status'] == 'removed']
+        is_kubernetes = body['type'] == 'kubernetes'
+        redeploy_existing_payload = {
+            "services": existing_services,
+            "type": body['type'],
+            'status': body['status'],
+            'removed_services': removed_services
+        }
+        redeploy_modified_payload = {
+            "services": modified_services,
+            "type": body['type'],
+            'status': body['status'],
+            'removed_services': removed_services
+        }
+
         if body['status'] == 'modified':
-            services = [k for k,v in body['services'].items() if v['status'] != 'removed']
-            if len(services) > 0:
-                result[project] = {
-                    "services": services,
-                    "type": body['type'],
-                    'status': body['status']
-                }
-        # ignore removed.. TODO
+            if len(existing_services) > 0:
+                result[project] = redeploy_existing_payload
+            elif is_kubernetes and len(removed_services) > 0:
+                result[project] = redeploy_existing_payload
         elif body['status'] == 'unchanged':
-            # ignore removed for docker but not for k8s
-            services = [k for k,v in body['services'].items() if v['status'] == 'modified']
-            if len(services) > 0 or body['type'] == 'kubernetes':
-                result[project] = {
-                    "services": services,
-                    "type": body['type'],
-                    'status': body['status']
-                }
-        elif body['status'] == 'removed' and body['type'] == 'kubernetes':
-            result[project] = {
-                "type": body['type'],
-                'status': body['status']
-            }
+            if len(modified_services) > 0:
+                result[project] = redeploy_modified_payload
+            elif is_kubernetes and len(removed_services) > 0:
+                result[project] = redeploy_modified_payload
+        elif body['status'] == 'removed':
+            if is_kubernetes and len(removed_services) > 0:
+                result[project] = redeploy_existing_payload
 
     return result
 

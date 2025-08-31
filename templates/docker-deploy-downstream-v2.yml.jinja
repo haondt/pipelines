@@ -58,28 +58,6 @@ docker-deploy-{{ project }}:
 
 {% for app in project_map.services %}
 
-{% if project_map.status == 'removed' %}
-
-docker-remove-{{ project }}-{{ app }}:
-  stage: deploy
-  image: {{ images.docker_deployer_v2 }}
-  {% if environment in task %}
-  environment:
-    name: {{ task.environment }}
-  {% endif %}
-  {% if helpers.should_use_manual_deploy(task, env) %}
-  when: manual
-  {% endif %}
-  needs:
-    - pipeline: $PARENT_PIPELINE_ID
-      job: docker-check-changes
-    - pipeline: $ROOT_PIPELINE_ID
-      job: generate
-  script:
-    - kubectl config use-context {{ project_config.context }} --kubeconfig {{ project_config.kubeconfig }}
-    - kapp delete -a {{ project_config.name | default(project) }}-{{ app }} --kubeconfig {{ project_config.kubeconfig }} --yes
-
-{% else %}
 
 docker-build-deployment-{{ project }}-{{ app }}:
   stage: deploy
@@ -118,7 +96,28 @@ docker-deploy-{{ project }}-{{ app }}:
     - kubectl config use-context {{ project_config.context }} --kubeconfig {{ project_config.kubeconfig }}
     - kapp deploy -a {{ project_config.name | default(project) }}-{{ app }} -f {{ project }}-{{ app }}-deploy/{{ project }}-{{ app }}.yml --kubeconfig {{ project_config.kubeconfig }} --yes
 
-{% endif %}
+{% endfor %}
+
+{% for app in project_map.removed_services %}
+
+docker-remove-{{ project }}-{{ app }}:
+  stage: deploy
+  image: {{ images.docker_deployer_v2 }}
+  {% if environment in task %}
+  environment:
+    name: {{ task.environment }}
+  {% endif %}
+  {% if helpers.should_use_manual_deploy(task, env) %}
+  when: manual
+  {% endif %}
+  needs:
+    - pipeline: $PARENT_PIPELINE_ID
+      job: docker-check-changes
+    - pipeline: $ROOT_PIPELINE_ID
+      job: generate
+  script:
+    - kubectl config use-context {{ project_config.context }} --kubeconfig {{ project_config.kubeconfig }}
+    - kapp delete -a {{ project_config.name | default(project) }}-{{ app }} --kubeconfig {{ project_config.kubeconfig }} --yes
 
 {% endfor %}
 
