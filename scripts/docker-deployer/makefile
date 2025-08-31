@@ -46,7 +46,11 @@ build-kubernetes:
 .PHONY: untar
 untar:
 	@[ -n "$(PROJECT)" ] || (echo "PROJECT is required"; exit 1)
-	PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
-		${PYTHON} -m docker-deployer.untar ${PROJECT} ./${PROJECT}-deploy
-
+	@if [ -n "$(APP)" ]; then \
+		PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
+			${PYTHON} -m docker-deployer.untar ${PROJECT}-${APP} ./${PROJECT}-${APP}-deploy; \
+	else \
+		PYTHONPATH="${SCRIPT_DIR}:$$PYTHONPATH" \
+			${PYTHON} -m docker-deployer.untar ${PROJECT} ./${PROJECT}-deploy; \
+	fi
 

@@ -34,7 +34,7 @@ def get_projects(xtra):
     result = {}
     for project, body in data['projects'].items():
         if body['status'] == 'modified':
-            services = [k for k,v in body['services'].items() if v['status'] != 'removed'],
+            services = [k for k,v in body['services'].items() if v['status'] != 'removed']
             if len(services) > 0:
                 result[project] = {
                     "services": services,
@@ -42,9 +42,9 @@ def get_projects(xtra):
                 }
         # ignore removed.. TODO
         elif body['status'] == 'unchanged':
-            # also ignoring removed...
-            services = [k for k,v in body['services'].items() if v['status'] == 'modified'],
-            if len(services) > 0:
+            # ignore removed for docker but not for k8s
+            services = [k for k,v in body['services'].items() if v['status'] == 'modified']
+            if len(services) > 0 or body['type'] == 'kubernetes':
                 result[project] = {
                     "services": services,
                     "type": body['type']

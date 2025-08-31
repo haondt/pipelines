@@ -5,7 +5,6 @@ from .lib.tar_tools import untar, decrypt
 
 def main():
     parser = argparse.ArgumentParser(prog='untar')
-    parser.add_argument('key', help='encryption key')
     parser.add_argument('project', help='project name')
     parser.add_argument('output', help='output path')
     args = parser.parse_args()

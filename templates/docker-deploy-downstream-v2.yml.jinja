@@ -56,9 +56,9 @@ docker-deploy-{{ project }}:
 
 {% elif  project_map.type == 'kubernetes' %}
 
-{{ raise_value_error('TODO!') }}
+{% for app in project_map.services %}
 
-docker-build-deployment-{{ project }}:
+docker-build-deployment-{{ project }}-{{ app }}:
   stage: deploy
   image: {{ images.docker_deployer_v2 }}
   needs:
@@ -67,14 +67,13 @@ docker-build-deployment-{{ project }}:
     - pipeline: $ROOT_PIPELINE_ID
       job: generate
   script:
-    - make -f {{ scripts_dir }}/docker-deployer/makefile build-kubernetes PROJECT={{ project }}
+    - make -f {{ scripts_dir }}/docker-deployer/makefile build-kubernetes PROJECT={{ project }} APP={{ app }}
   artifacts:
     paths:
-      - {{ project }}.enc
+      - {{ project }}-{{ app }}.enc
     expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
 
-TODO: for app in project.apps, kapp deploy -a app.yaml.metadata.name -f app-manifest.yml
-docker-deploy-{{ project }}:
+docker-deploy-{{ project }}-{{ app }}:
   stage: deploy
   image: {{ images.docker_deployer_v2 }}
   {% if environment in task %}
@@ -84,20 +83,20 @@ docker-deploy-{{ project }}:
   {% if helpers.should_use_manual_deploy(task, env) %}
   when: manual
   {% endif %}
-  variables:
-    {% if 'name' in project_config %}
-    DEPLOYMENT_NAME: {{ project_config.name }}
-    {% else %}
-    DEPLOYMENT_NAME: {{ project }}
-    {% endif %}
   needs:
-    - docker-build-deployment-{{ project }}
+    - docker-build-deployment-{{ project }}-{{ app }}
     - pipeline: $PARENT_PIPELINE_ID
       job: docker-check-changes
     - pipeline: $ROOT_PIPELINE_ID
       job: generate
   script:
-    - kapp deploy
+    - make -f {{ scripts_dir }}/docker-deployer/makefile untar PROJECT={{ project }} APP={{ app }}
+    - kubectl config use-context {{ project_config.target }} --kubeconfig {{ project_config.kubeconfig }}
+    - kapp deploy -a {{ project_config.name | default(project) }}-{{ app }} -f {{ project }}-{{ app }}-deploy/{{ project }}-{{ app }}.yml --kubeconfig {{ project_config.kubeconfig }}
+
+# TODO: deletion of k8s projects
+
+{% endfor %}
 
 {% else %}
 
