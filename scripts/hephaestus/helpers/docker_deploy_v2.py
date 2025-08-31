@@ -38,7 +38,8 @@ def get_projects(xtra):
             if len(services) > 0:
                 result[project] = {
                     "services": services,
-                    "type": body['type']
+                    "type": body['type'],
+                    'status': body['status']
                 }
         # ignore removed.. TODO
         elif body['status'] == 'unchanged':
@@ -47,8 +48,15 @@ def get_projects(xtra):
             if len(services) > 0 or body['type'] == 'kubernetes':
                 result[project] = {
                     "services": services,
-                    "type": body['type']
+                    "type": body['type'],
+                    'status': body['status']
                 }
+        elif body['status'] == 'removed' and body['type'] == 'kubernetes':
+            result[project] = {
+                "type": body['type'],
+                'status': body['status']
+            }
+
     return result
 
 def get_project_config(xtra, project):
