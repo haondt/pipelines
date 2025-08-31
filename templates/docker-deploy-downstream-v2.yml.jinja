@@ -92,7 +92,7 @@ docker-deploy-{{ project }}-{{ app }}:
   script:
     - make -f {{ scripts_dir }}/docker-deployer/makefile untar PROJECT={{ project }} APP={{ app }}
     - kubectl config use-context {{ project_config.context }} --kubeconfig {{ project_config.kubeconfig }}
-    - kapp deploy -a {{ project_config.name | default(project) }}-{{ app }} -f {{ project }}-{{ app }}-deploy/{{ project }}-{{ app }}.yml --kubeconfig {{ project_config.kubeconfig }}
+    - kapp deploy -a {{ project_config.name | default(project) }}-{{ app }} -f {{ project }}-{{ app }}-deploy/{{ project }}-{{ app }}.yml --kubeconfig {{ project_config.kubeconfig }} --yes
 
 # TODO: deletion of k8s projects
 
