@@ -43,7 +43,8 @@ def create_service_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
                     ports=[client.V1ServicePort(
                         protocol=port_protocol,
                         port=port_number,
-                        target_port=port_name
+                        target_port=port_name,
+                        name=port_name
                     )]
                 )
             )
