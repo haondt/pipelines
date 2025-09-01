@@ -2,6 +2,9 @@ import argparse
 import os, sys
 import tempfile
 from .lib.tar_tools import untar, decrypt
+from .lib.configuration import parse_bool_env_var
+
+DEBUG = parse_bool_env_var('DEBUG')
 
 def main():
     parser = argparse.ArgumentParser(prog='untar')
@@ -16,9 +19,12 @@ def main():
         untar(tf, args.output)
 
 if __name__ == '__main__':
-    try:
+    if DEBUG:
         main()
-    # discard stack trace
-    except Exception as e:
-        print(f"{type(e).__name__}:", e, file=sys.stderr)
-        exit(1)
+    else:
+        try:
+            main()
+        # discard stack trace
+        except Exception as e:
+            print(f"{type(e).__name__}:", e, file=sys.stderr)
+            exit(1)

@@ -54,13 +54,14 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
         map = client.V1Secret(
             api_version="v1",
             kind="Secret",
+            type="Opaque",
             metadata=client.V1ObjectMeta(
                 name=volume_manifest_name,
                 namespace=args.app_def.metadata.namespace,
                 labels=args.component_labels,
                 annotations=args.component_annotations,
             ),
-            data=map_data
+            string_data=map_data
         )
     else:
         map = client.V1ConfigMap(

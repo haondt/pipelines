@@ -11,7 +11,8 @@ from ..lib import tar_tools
 from ..lib.transform import Transformation
 from ..lib.environment import Environment
 from ..build import encrypt
-from .utils import load_existing_file, parse_bool_env_var
+from .utils import load_existing_file
+from ..lib.configuration import parse_bool_env_var
 import tempfile
 import shutil, re
 
