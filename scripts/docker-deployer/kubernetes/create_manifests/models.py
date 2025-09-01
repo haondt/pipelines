@@ -5,6 +5,7 @@ from typing import Callable
 
 APP_SELECTOR_NAME = 'deployment.haondt.dev/part-of'
 COMPONENT_SELECTOR_NAME = 'deployment.haondt.dev/name'
+PROJECT_SELECTOR_NAME = 'deployment.haondt.dev/project'
 
 @dataclass
 class ManifestArguments:

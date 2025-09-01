@@ -95,18 +95,27 @@ class EnvironmentSpec(BaseModel):
 
 # Networking specifications
 class TLSConfig(BaseModel):
-    enabled: bool = False
+    enabled: bool = Field(default=True)
     host: str | None = None
 
 class IngressConfig(BaseModel):
     enabled: bool = False
     host: str | None = None
-    port: int | None = None
-    tls: TLSConfig | None = None
+    port: str | None = None
+    tls: TLSConfig = Field(default_factory=lambda: TLSConfig())
+
+class NetworkingDependency(BaseModel):
+    name: str
+    port: str | int
+
+class PortConfig(BaseModel):
+    port: int
+    protocol: str = Field(default='TCP')
 
 class NetworkingSpec(BaseModel):
-    dependencies: list[str] | None = None
-    ingress: IngressConfig | None = None
+    dependencies: list[NetworkingDependency] | None = None
+    ingresses: list[IngressConfig] | None = None
+    ports: dict[str, int | PortConfig] | None = None
 
 class ComponentNetworking(BaseModel):
     ingress: IngressConfig | None = None

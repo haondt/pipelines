@@ -5,6 +5,8 @@ from .app import get_app_labels, get_app_annotations
 from .component import get_component_labels_factory, get_component_annotations_factory
 from .deployment import create_deployment_manifests
 from .namespace import create_namespace_manifests
+from .service import create_service_manifests
+
 from typing import Any
 
 
@@ -23,5 +25,6 @@ def create_manifests(app_def: AppDefinition, app_env: Environment, compiled_file
     manifests = []
     manifests += create_deployment_manifests(args)
     manifests += create_namespace_manifests(args)
+    manifests += create_service_manifests(args)
 
     return manifests

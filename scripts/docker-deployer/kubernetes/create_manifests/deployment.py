@@ -1,4 +1,4 @@
-from .models import APP_SELECTOR_NAME, COMPONENT_SELECTOR_NAME, ComponentManifestArguments, ManifestArguments
+from .models import *
 from .volume import create_volume_manifest
 from typing import Any
 from kubernetes import client
@@ -119,6 +119,23 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
 
             pod_template.spec.volumes = (pod_template.spec.volumes or []) + pod_template_volumes # type: ignore[no-any-return]
         
+        # add ports
+        if component.spec.networking and component.spec.networking.ports:
+            for port_name, port in component.spec.networking.ports.items():
+                port_number = port
+                port_protocol = 'TCP'
+                if isinstance(port, PortConfig):
+                    port_number = port.port
+                    port_protocol = port.protocol
+
+                if not container.ports:
+                    container.ports = []
+                container.ports.append(client.V1ContainerPort(
+                    container_port=port_number,
+                    name=port_name,
+                    protocol=port_protocol
+                ))
+
         # Convert to dictionary for output
         manifests.append(client.ApiClient().sanitize_for_serialization(deployment))
 
