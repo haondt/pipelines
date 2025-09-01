@@ -1,6 +1,4 @@
 from pydantic import BaseModel, model_validator, Field
-from kubernetes import client
-from typing import Any
 import uuid
 
 # Resource specifications

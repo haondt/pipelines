@@ -37,12 +37,9 @@ def make_config_map_key(path: str) -> str:
 
 def coerce_dns_name(s: str) -> str:
     s = s.lower()
-    s = re.sub(r'[^a-z0-9.-]', '-', s)
+    s = re.sub(r'[^a-z0-9-]', '-', s)
     s = re.sub(r'-+', '-', s)
     s = s.strip('-')
-    if not s[0].isalnum():
-        s = 'a' + s
     s = s[:253]
-    if not s[-1].isalnum():
-        s = s[:-1] + 'z'
+    s = s.strip('-')
     return s
