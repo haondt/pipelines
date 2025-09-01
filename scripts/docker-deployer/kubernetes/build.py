@@ -58,7 +58,6 @@ def created_compiled_app_files(project, app, env: Environment, destination_dir):
     transform_context_path = os.path.join(destination_dir)
     if os.path.isfile(transform_file_path):
         transformation_config = load_yaml_file(transform_file_path)
-        print(transform_context_path)
         transform = Transformation(transform_context_path, transformation_config, env, debug=DEBUG)
         transform.perform_transformations()
 

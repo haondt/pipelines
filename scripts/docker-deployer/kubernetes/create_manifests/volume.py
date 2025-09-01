@@ -8,6 +8,8 @@ def load_volume_source_data(args: ComponentManifestArguments, volume: VolumeSour
     if volume.glob:
         results = {}
         for file_path in glob.glob(os.path.join(args.compiled_files_dir, volume.glob)):
+            if os.path.isdir(file_path):
+                continue
             with open(file_path, 'r') as f:
                 data = f.read()
             rel_path = os.path.relpath(file_path, args.compiled_files_dir)
@@ -20,6 +22,8 @@ def load_volume_source_data(args: ComponentManifestArguments, volume: VolumeSour
             for name in files:
                 file_path = os.path.join(root, name)
                 rel_path = os.path.relpath(file_path, args.compiled_files_dir)
+                # drop the parent folder, since that is determined by the volume mount
+                rel_path = os.sep.join(rel_path.split(os.path.sep)[1:])
                 with open(file_path, 'r') as f:
                     results[rel_path] = f.read()
         return results

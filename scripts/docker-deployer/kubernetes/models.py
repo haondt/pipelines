@@ -36,6 +36,9 @@ class VolumeSource(BaseModel):
     def is_single(self):
         return (self.file is not None) or (self.data is not None)
 
+    def human_name(self) -> str:
+        return self.glob or self.dir or self.file or self.data or "VolumeSource"
+
 class VolumeDestination(BaseModel):
     file: str | None = None
     dir: str | None = None

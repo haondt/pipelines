@@ -3,6 +3,7 @@ from .volume import create_volume_manifest
 from typing import Any
 from kubernetes import client
 import os
+from ..utils import coerce_dns_name
 
 def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
@@ -69,7 +70,7 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
             pod_template_volumes = []
 
             for volume_spec in component.spec.volumes:
-                volume_manifest_name = f"{args.app_def.metadata.name}-{component_name}-{volume_spec.id}"
+                volume_manifest_name = f"{args.app_def.metadata.name}-{component_name}-{coerce_dns_name(volume_spec.src.human_name())}-{volume_spec.id}"
                 volume_map, volume_manifest = create_volume_manifest(component_args, volume_manifest_name, volume_spec)
                 manifests.append(volume_manifest)
 
