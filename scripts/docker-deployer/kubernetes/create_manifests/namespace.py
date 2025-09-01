@@ -1,5 +1,7 @@
 from ..models import *
 from .models import ManifestArguments
+from typing import Any
+from kubernetes import client
 
 def create_namespace_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     ns = client.V1Namespace(
