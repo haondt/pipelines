@@ -75,6 +75,7 @@ class VolumeSpec(BaseModel):
 
 class EnvironmentSpec(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4().hex))
+    secret: bool = Field(default=False)
 
     file: str | None = None
     raw: dict[str, str | bool | float | int | None] | None = None
@@ -89,9 +90,6 @@ class EnvironmentSpec(BaseModel):
         if len(selected) != 1:
             raise ValueError(f"Exactly one type must be configured. found {selected}")
         return self
-
-
-    secret: bool = Field(default=False)
 
 # Networking specifications
 class TLSConfig(BaseModel):

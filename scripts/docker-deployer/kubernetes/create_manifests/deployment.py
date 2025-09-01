@@ -1,5 +1,6 @@
 from .models import *
 from .volume import create_volume_manifest
+from .environment import create_environment_manifest
 from typing import Any
 from kubernetes import client
 import os
@@ -119,6 +120,32 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
 
             pod_template.spec.volumes = (pod_template.spec.volumes or []) + pod_template_volumes # type: ignore[no-any-return]
         
+        # add env vars
+        if component.spec.environment:
+            pod_template_environments = []
+
+            for environment_spec in component.spec.environment:
+                environment_manifest_name = f"{args.app_def.metadata.name}-{component_name}-environment-{environment_spec.id}"
+                environment_manifest = create_environment_manifest(component_args, environment_manifest_name, environment_spec)
+                manifests.append(environment_manifest)
+
+                if container.env_from is None:
+                    container.env_from = []
+
+                if environment_spec.secret:
+                    container.env_from.append(client.V1EnvFromSource(
+                        secret_ref=client.V1SecretEnvSource(
+                            name=environment_manifest_name
+                        )
+                    ))
+                else:
+                    container.env_from.append(client.V1EnvFromSource(
+                        config_map_ref=client.V1ConfigMapEnvSource(
+                            name=environment_manifest_name
+                        )
+                    ))
+
+
         # add ports
         if component.spec.networking and component.spec.networking.ports:
             for port_name, port in component.spec.networking.ports.items():
