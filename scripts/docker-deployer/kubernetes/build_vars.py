@@ -1,16 +1,18 @@
-import argparse, yaml, os, sys
+import yaml, os
 from ..lib.environment import Environment
-from ..lib.yaml_tools import deep_merge, load_file as load_yaml_file
+from ..lib.yaml_tools import deep_merge, unflatten, load_file as load_yaml_file
 from ..lib.hydration import hydrate_string
-from .create_manifests import create_manifests
-from .models import AppDefinition
 from types import SimpleNamespace
 from datetime import datetime, timezone
 from .utils import load_file, load_existing_file
 
 COMPONENT_KEY = 'COM_HAONDT_COMPONENT'
 
-def build_app_yaml(project_dir_name, app_dir_name: str, base_env: Environment, app_base_yaml: str | None, component_base_yaml: str | None):
+def load_yaml_and_unflatten(data: str):
+    return unflatten(yaml.safe_load(data), blacklist_re=[r".*\.metadata\..*", r".*\.environment\[\].raw\..*"])
+
+
+def build_app_yaml(project_config, project_dir_name, app_dir_name: str, base_env: Environment, app_base_yaml: str | None, component_base_yaml: str | None):
     # create environment
     app_env = Environment()
     app_env.load_plugin_yaml_file(f"{project_dir_name}/services/{app_dir_name}/env.haondt.yml", True)
@@ -23,12 +25,12 @@ def build_app_yaml(project_dir_name, app_dir_name: str, base_env: Environment, a
 
     # hydrate and load app_yaml
     app_hydrated = hydrate_string(app_yaml, app_env)
-    app_loaded = yaml.safe_load(app_hydrated)
+    app_loaded = load_yaml_and_unflatten(app_hydrated)
     
     # hydrate and load app_base_yaml
     if app_base_yaml is not None:
         app_base_hydrated = hydrate_string(app_base_yaml, app_env)
-        app_base_loaded = yaml.safe_load(app_base_hydrated)
+        app_base_loaded = load_yaml_and_unflatten(app_base_hydrated)
         app_loaded = deep_merge(app_base_loaded, app_loaded)
 
 
@@ -40,7 +42,7 @@ def build_app_yaml(project_dir_name, app_dir_name: str, base_env: Environment, a
             component_env = app_env.copy()
             component_env.add_value(COMPONENT_KEY, component, overwrite=True)
             component_base_hydrated = hydrate_string(component_base_yaml, component_env)
-            component_base_loaded = yaml.safe_load(component_base_hydrated)
+            component_base_loaded = load_yaml_and_unflatten(component_base_hydrated)
 
             # merge component base yaml into app yaml
             app_loaded = deep_merge(component_base_loaded, app_loaded)
@@ -65,7 +67,6 @@ def build_app_yaml(project_dir_name, app_dir_name: str, base_env: Environment, a
             app_loaded = deep_merge(component_static_config, app_loaded)
 
     # get static config
-    project_config = load_yaml_file(f"{project_dir_name}/config.haondt.yml")
     app_static_config = get_static_default_app_yaml(
         project_config.get('name', project_dir_name),
         app_loaded.get('metadata', {}).get('name', app_dir_name), app_env)
@@ -135,4 +136,4 @@ def build_vars(project: str, app: str):
     app_base_yaml = load_file(os.path.join(project, 'kubernetes-app-base.haondt.yml'))
     component_base_yaml = load_file(os.path.join(project, 'kubernetes-component-base.haondt.yml'))
     project_config = load_yaml_file(os.path.join(project, 'config.haondt.yml'))
-    return build_app_yaml(project, app, base_env, app_base_yaml, component_base_yaml) 
+    return build_app_yaml(project_config, project, app, base_env, app_base_yaml, component_base_yaml) 

@@ -8,7 +8,6 @@ from .lib.yaml_tools import deep_merge, load_file as load_yaml_file
 from .lib.tar_tools import tar, encrypt
 from .lib.transform import Transformation
 
-
 CONTAINER_KEY = 'COM_HAONDT_CONTAINER'
 
 def load_file(fn):

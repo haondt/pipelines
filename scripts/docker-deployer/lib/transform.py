@@ -7,9 +7,10 @@ from .yaml_tools import valueType, containerType, to_flat_dict
 
 
 class Transformation:
-    def __init__(self, base_path, config, hydration_env: Environment):
+    def __init__(self, base_path, config, hydration_env: Environment, debug: bool=False):
         self.hydration_env: Environment = hydration_env
         self.tranformations = []
+        self.debug = debug
 
         for ct in config:
             transformation = {}
@@ -37,7 +38,7 @@ class Transformation:
             src_string = f.read()
 
         if transformation['src_hydrate']:
-            src_string = hydrate_string(src_string, self.hydration_env)
+            src_string = hydrate_string(src_string, self.hydration_env, self.debug)
 
 
         if src_type == 'yaml':

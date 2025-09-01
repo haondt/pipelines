@@ -1,5 +1,6 @@
-import yaml, typing
+import yaml, typing, os, re
 from .models import ProjectTypeEnum, StatusEnum
+from typing import Any
 
 def represent_none(dumper, _):
     return dumper.represent_scalar('tag:yaml.org,2002:null', '')
@@ -10,15 +11,102 @@ def represent_set_as_list(dumper, data):
 def _represent_enum(dumper, data):
     return dumper.represent_scalar('tag:yaml.org,2002:str', data.value)
 
+def _represent_str(dumper, data):
+    """
+        configures yaml for dumping multiline strings
+        Ref: https://stackoverflow.com/questions/8640959/how-can-i-control-what-scalar-form-pyyaml-uses-for-my-data
+
+        I am intentionally not stripping trailing newlines, meaning if you have them it will go back to the default style. I am doing this in order to avoid changing the contents of the string in any way.
+    """
+    
+    if data.count('\n') > 0:
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+
 yaml.add_representer(StatusEnum, _represent_enum)
 yaml.add_representer(ProjectTypeEnum, _represent_enum)
-
 yaml.add_representer(type(None), represent_none)
 yaml.add_representer(set, represent_set_as_list)
+yaml.add_representer(str, _represent_str)
 
-def load_file(fn):
+def unflatten(obj, sep: str = ".",
+    conflict="error",
+    blacklist_re: str | list[str] | None = None,
+    _current_path="") -> Any:
+    if conflict not in ["ignore", "overwrite", "error"]:
+        raise ValueError("Unexpected conflict resolution:" + conflict)
+
+    blacklist_patterns = []
+    if blacklist_re is not None:
+        if isinstance(blacklist_re, str):
+            blacklist_patterns = [re.compile(blacklist_re)]
+        elif isinstance(blacklist_re, list):
+            blacklist_patterns = [re.compile(pattern) for pattern in blacklist_re]
+
+    if isinstance(obj, dict):
+        result = {}
+        for key, value in obj.items():
+            current_item_path = f"{_current_path}.{key}"
+            value = unflatten(value, sep, conflict, blacklist_re, _current_path=current_item_path)
+            if not isinstance(key, str):
+                result[key] = value
+                continue
+
+            if any(pattern.search(current_item_path) for pattern in blacklist_patterns):
+                result[key] = value
+                continue
+
+            parts = key.split(sep)
+            current = result
+            for part in parts[:-1]:
+                if part not in current:
+                    current[part] = {}
+                elif not isinstance(current[part], dict):
+                    if conflict == "error":
+                        raise ValueError(f"Conflict at {'.'.join(parts[:-1])}")
+                    elif conflict == "overwrite":
+                        current[part] = {}
+                    elif conflict == "ignore":
+                        current = None
+                        break
+                current = current[part]
+            if current is not None:
+                leaf = parts[-1]
+                if leaf in current:
+                    if conflict == "error":
+                        raise ValueError(f"Conflict at {key}")
+                    elif conflict == "overwrite":
+                        current[leaf] = value
+                    elif conflict == "ignore":
+                        continue
+                else:
+                    current[leaf] = value
+        return result
+    elif isinstance(obj, list):
+        return [unflatten(item, sep, conflict, blacklist_re, _current_path=_current_path + "[]") for item in obj]
+    else:
+        return obj
+
+def load_existing_file(fn):
+    if os.path.isfile(fn):
+        with open(fn, 'r') as f:
+            return f.read()
+    raise ValueError(f"Could not find file {fn}")
+
+def load_file(fn, 
+    expand_dot_keys=False,
+    expansion_conflict_strategy="err",
+    assert_exists: bool=True) -> Any:
+    if not os.path.isfile(fn):
+        if assert_exists:
+            raise ValueError(f"Could not find file {fn}")
+        return None
+
     with open(fn, 'r') as f:
-        return yaml.safe_load(f)
+        data = yaml.safe_load(f)
+    if expand_dot_keys:
+        data = unflatten(data, conflict=expansion_conflict_strategy)
+    return data
 
 # deep merge two dictionaries created from yaml
 # when merging primitives, the one from d2 is preferred

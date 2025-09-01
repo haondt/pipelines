@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, model_validator, Field
 from kubernetes import client
 from typing import Any
+import uuid
 
 # Resource specifications
 class ResourceSpec(BaseModel):
@@ -12,18 +13,84 @@ class Resources(BaseModel):
     requests: ResourceSpec | None = None
 
 # Volume specifications
-class ConfigMapSource(BaseModel):
-    source: str | dict[str, Any]
+class VolumeSource(BaseModel):
+    glob: str | None = None
+    dir: str | None = None
+    file: str | None = None
+    data: str | None = None
+    secret: bool = Field(default=False)
 
-class SecretSource(BaseModel):
-    source: dict[str, Any]
+    @model_validator(mode="after")
+    def validate_type(self):
+        selected = [i for i in [
+            self.glob,
+            self.dir,
+            self.file,
+            self.data,
+        ] if i is not None]
+
+        if len(selected) != 1:
+            raise ValueError(f"Exactly one type must be configured. found {selected}")
+        return self
+
+    def is_single(self):
+        return (self.file is not None) or (self.data is not None)
+
+class VolumeDestination(BaseModel):
+    file: str | None = None
+    dir: str | None = None
+
+    @model_validator(mode="after")
+    def validate_type(self):
+        selected = [i for i in [
+            self.file,
+            self.dir,
+        ] if i is not None]
+
+        if len(selected) != 1:
+            raise ValueError(f"Exactly one type must be configured. found {selected}")
+        return self
+
+    def is_single(self):
+        return self.file is not None
 
 class VolumeSpec(BaseModel):
-    path: str | None = None
-    env: bool | None = None
+    id: str = Field(default_factory=lambda: str(uuid.uuid4().hex))
 
-    configMap: ConfigMapSource | None = None
-    secret: SecretSource | None = None
+    src: VolumeSource
+    dest: VolumeDestination
+
+    @model_validator(mode="after")
+    def validate_destination_type(self):
+        if self.src.is_single():
+            if not self.dest.is_single():
+                raise ValueError("Src and dest must either both be single or both be not single")
+        elif self.dest.is_single():
+            raise ValueError("Src and dest must either both be single or both be not single")
+        return self
+
+    def is_single(self):
+        return self.src.is_single()
+
+class EnvironmentSpec(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4().hex))
+
+    file: str | None = None
+    raw: dict[str, str | bool | float | int | None] | None = None
+
+    @model_validator(mode="after")
+    def validate_type(self):
+        selected = [i for i in [
+            self.file,
+            self.raw,
+        ] if i is not None]
+
+        if len(selected) != 1:
+            raise ValueError(f"Exactly one type must be configured. found {selected}")
+        return self
+
+
+    secret: bool = Field(default=False)
 
 # Networking specifications
 class TLSConfig(BaseModel):
@@ -47,7 +114,8 @@ class ComponentNetworking(BaseModel):
 class ComponentSpec(BaseModel):
     image: str
     networking: NetworkingSpec | None = None
-    volumes: dict[str, VolumeSpec] | None = None
+    volumes: list[VolumeSpec] | None = None
+    environment: list[EnvironmentSpec] | None = None
 
 # Metadata can be either a string shorthand or a full object
 class ComponentMetadata(BaseModel):
