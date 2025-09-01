@@ -83,13 +83,22 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                         pod_template_items.append(client.V1KeyToPath(key=map_key, path=rel_path))
 
 
-                pod_template_volume = client.V1Volume(
-                    name=volume_manifest_name,
-                    config_map=client.V1ConfigMapVolumeSource(
+                if volume_spec.src.secret:
+                    pod_template_volume = client.V1Volume(
                         name=volume_manifest_name,
-                        items=pod_template_items
+                        secret=client.V1SecretVolumeSource(
+                            secret_name=volume_manifest_name,
+                            items=pod_template_items
+                        )
                     )
-                )
+                else:
+                    pod_template_volume = client.V1Volume(
+                        name=volume_manifest_name,
+                        config_map=client.V1ConfigMapVolumeSource(
+                            name=volume_manifest_name,
+                            items=pod_template_items
+                        )
+                    )
                 pod_template_volumes.append(pod_template_volume)
 
                 if volume_spec.is_single():
