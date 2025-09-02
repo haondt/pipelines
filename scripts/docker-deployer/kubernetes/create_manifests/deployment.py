@@ -224,10 +224,6 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                     )
                     manifests.append(client.ApiClient().sanitize_for_serialization(network_policy))
 
-
-
-
-
         manifests.append(client.ApiClient().sanitize_for_serialization(deployment))
 
     return manifests
