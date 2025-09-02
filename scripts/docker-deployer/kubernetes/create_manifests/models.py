@@ -4,8 +4,10 @@ from ...lib.environment import Environment
 from typing import Callable
 
 APP_SELECTOR_NAME = 'deployment.haondt.dev/part-of'
+NAMESPACE_SELECTOR_NAME = 'deployment.haondt.dev/name'
 COMPONENT_SELECTOR_NAME = 'deployment.haondt.dev/name'
 PROJECT_SELECTOR_NAME = 'deployment.haondt.dev/project'
+SERVICE_DEFAULT_PORT = 8080
 
 @dataclass
 class ManifestArguments:

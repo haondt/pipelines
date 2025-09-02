@@ -6,6 +6,9 @@ from kubernetes import client
 import os
 from ..utils import coerce_dns_name
 
+def get_service_name(args: ManifestArguments, component_name: str, port_name: str):
+    return f"{args.app_def.metadata.name}-{component_name}-{port_name}-service",
+
 def create_service_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
 
@@ -19,17 +22,15 @@ def create_service_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
 
         for port_name, port in networking.ports.items():
             port_protocol = 'TCP'
-            port_number = port
 
             if isinstance(port, PortConfig):
                 port_protocol = port.protocol
-                port_number = port.port
 
             service = client.V1Service(
                 api_version= "v1",
                 kind="Service",
                 metadata=client.V1ObjectMeta(
-                    name=f"{args.app_def.metadata.name}-{component_name}-{port_name}-service",
+                    name=get_service_name(args, component_name, port_name),
                     namespace=args.app_def.metadata.namespace,
                     labels=component_labels,
                     annotations=component_annotations
@@ -42,7 +43,7 @@ def create_service_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
                     },
                     ports=[client.V1ServicePort(
                         protocol=port_protocol,
-                        port=port_number,
+                        port=SERVICE_DEFAULT_PORT,
                         target_port=port_name,
                         name=port_name
                     )]

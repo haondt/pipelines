@@ -103,8 +103,10 @@ class IngressConfig(BaseModel):
     tls: TLSConfig = Field(default_factory=lambda: TLSConfig())
 
 class NetworkingDependency(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4().hex))
     name: str
     port: str | int
+    protocol: str = Field(default='TCP')
 
 class PortConfig(BaseModel):
     port: int
