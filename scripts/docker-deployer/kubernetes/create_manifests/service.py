@@ -7,7 +7,7 @@ import os
 from ..utils import coerce_dns_name
 
 def get_service_name(args: ManifestArguments, component_name: str, port_name: str):
-    return f"{args.app_def.metadata.name}-{component_name}-{port_name}-service"
+    return f"{args.app_def.metadata.name}-{component_name}-{port_name}"
 
 def create_service_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
