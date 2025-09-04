@@ -49,7 +49,7 @@ def create_network_policy_manifests(args: ManifestArguments) -> list[dict[str, A
                 api_version="networking.k8s.io/v1",
                 kind="NetworkPolicy",
                 metadata=client.V1ObjectMeta(
-                    name=f"{args.app_def.metadata.name}-{component_name}-{args.app_def.metadata.name}-{net_dep.id}",
+                    name=f"{args.app_def.metadata.name}-{component_name}-{net_dep.id}",
                     namespace=dep_namespace,
                     labels=component_labels,
                     annotations=component_annotations

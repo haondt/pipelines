@@ -96,10 +96,18 @@ class TLSConfig(BaseModel):
     enabled: bool = Field(default=True)
     host: str | None = None
 
+    @model_validator(mode="after")
+    def validate_type(self):
+        if (self.enabled):
+            if self.host is None:
+                raise ValueError(f"TLS spec must have a host when enabled")
+        return self
+
 class IngressConfig(BaseModel):
-    enabled: bool = False
-    host: str | None = None
-    port: str | None = None
+    enabled: bool = True
+    host: str
+    port: str
+    protocol: str = Field(default='TCP')
     tls: TLSConfig = Field(default_factory=lambda: TLSConfig())
 
 class NetworkingDependency(BaseModel):

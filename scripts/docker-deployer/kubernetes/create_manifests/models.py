@@ -8,6 +8,7 @@ NAMESPACE_SELECTOR_NAME = 'deployment.haondt.dev/name'
 COMPONENT_SELECTOR_NAME = 'deployment.haondt.dev/name'
 PROJECT_SELECTOR_NAME = 'deployment.haondt.dev/project'
 SERVICE_DEFAULT_PORT = 8080
+INGRESS_CLASS_NAME = 'nginx'
 
 @dataclass
 class ManifestArguments:

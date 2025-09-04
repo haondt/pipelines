@@ -1,10 +1,6 @@
-from sys import api_version
 from .models import *
-from .volume import create_volume_manifest
 from typing import Any
 from kubernetes import client
-import os
-from ..utils import coerce_dns_name
 
 def get_service_name(args: ManifestArguments, component_name: str, port_name: str):
     return f"{args.app_def.metadata.name}-{component_name}-{port_name}"
