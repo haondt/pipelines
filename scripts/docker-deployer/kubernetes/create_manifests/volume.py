@@ -122,6 +122,12 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
             source_data = load_volume_single_data(args, volume_spec.src)
             map_data = { "data": source_data }
             pod_template_items.append(client.V1KeyToPath(key="data", path=os.path.basename(volume_spec.dest.file)))
+            volume_mounts.append(client.V1VolumeMount(
+                name=volume_manifest_name,
+                mount_path=volume_spec.dest.file,
+                sub_path=os.path.basename(volume_spec.dest.file),
+                read_only=True
+            ))
         else:
             assert volume_spec.dest.dir is not None # should be true cuz not single
             source_data = load_volume_map_data(args, volume_spec.src)
@@ -130,6 +136,12 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
                 map_key = make_config_map_key(rel_path)
                 map_data[map_key] = data
                 pod_template_items.append(client.V1KeyToPath(key=map_key, path=rel_path))
+
+            volume_mounts.append(client.V1VolumeMount(
+                name=volume_manifest_name,
+                mount_path=volume_spec.dest.dir,
+                read_only=True
+            ))
 
         if volume_spec.src.secret:
             volumes.append(client.V1Volume(
