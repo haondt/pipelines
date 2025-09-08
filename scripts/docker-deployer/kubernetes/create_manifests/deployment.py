@@ -71,8 +71,8 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         if component.spec.volumes:
             pod_template_volumes = []
 
-            for volume_spec in component.spec.volumes:
-                volume_manifest_name = f"{args.app_def.metadata.name}-{component_name}-{coerce_dns_name(volume_spec.src.human_name())}-{volume_spec.id}"
+            for volume_id, volume_spec in component.spec.volumes.items():
+                volume_manifest_name = volume_id
 
                 volume_manifests, pod_volumes, pod_volume_mounts = create_volume_manifest(component_args, volume_manifest_name, volume_spec)
 

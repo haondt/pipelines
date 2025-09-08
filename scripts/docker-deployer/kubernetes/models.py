@@ -65,8 +65,6 @@ class VolumeDestination(BaseModel):
         return self.file is not None
 
 class VolumeSpec(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4().hex))
-
     src: VolumeSource
     dest: VolumeDestination
 
@@ -152,7 +150,7 @@ class SecuritySpec(BaseModel):
 class ComponentSpec(BaseModel):
     image: str
     networking: NetworkingSpec | None = None
-    volumes: list[VolumeSpec] | None = None
+    volumes: dict[str, VolumeSpec] | None = None
     environment: list[EnvironmentSpec] | None = None
     security: SecuritySpec | None = None
 
