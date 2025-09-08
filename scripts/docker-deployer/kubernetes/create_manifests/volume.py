@@ -155,7 +155,7 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
         else:
             volumes.append(client.V1Volume(
                 name=volume_manifest_name,
-                secret=client.V1ConfigMapVolumeSource(
+                config_map=client.V1ConfigMapVolumeSource(
                     name=volume_manifest_name,
                     items=pod_template_items
                 )
