@@ -73,53 +73,19 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
 
             for volume_spec in component.spec.volumes:
                 volume_manifest_name = f"{args.app_def.metadata.name}-{component_name}-{coerce_dns_name(volume_spec.src.human_name())}-{volume_spec.id}"
-                volume_map, volume_manifest = create_volume_manifest(component_args, volume_manifest_name, volume_spec)
-                manifests.append(volume_manifest)
 
-                pod_template_items = []
-                if volume_spec.is_single():
-                    assert volume_spec.dest.file is not None # should be true cuz single
-                    pod_template_items.append(client.V1KeyToPath(key=volume_map[""], path=os.path.basename(volume_spec.dest.file)))
-                else:
-                    assert volume_spec.dest.dir is not None # should be true cuz not single
-                    for rel_path, map_key in volume_map.items():
-                        pod_template_items.append(client.V1KeyToPath(key=map_key, path=rel_path))
+                volume_manifests, pod_volumes, pod_volume_mounts = create_volume_manifest(component_args, volume_manifest_name, volume_spec)
 
+                manifests += volume_manifests
+                pod_template_volumes += pod_volumes
+                if container.volume_mounts is None:
+                    container.volume_mounts = []
+                container.volume_mounts += pod_volume_mounts
 
-                if volume_spec.src.secret:
-                    pod_template_volume = client.V1Volume(
-                        name=volume_manifest_name,
-                        secret=client.V1SecretVolumeSource(
-                            secret_name=volume_manifest_name,
-                            items=pod_template_items
-                        )
-                    )
-                else:
-                    pod_template_volume = client.V1Volume(
-                        name=volume_manifest_name,
-                        config_map=client.V1ConfigMapVolumeSource(
-                            name=volume_manifest_name,
-                            items=pod_template_items
-                        )
-                    )
-                pod_template_volumes.append(pod_template_volume)
-
-                if volume_spec.is_single():
-                    assert volume_spec.dest.file is not None # should be true cuz single
-                    container.volume_mounts = (container.volume_mounts or []) + [client.V1VolumeMount(
-                        name=volume_manifest_name,
-                        mount_path=volume_spec.dest.file,
-                        sub_path=os.path.basename(volume_spec.dest.file),
-                        read_only=True
-                    )]
-                else:
-                    container.volume_mounts = (container.volume_mounts or []) + [client.V1VolumeMount(
-                        name=volume_manifest_name,
-                        mount_path=volume_spec.dest.dir,
-                        read_only=True
-                    )]
-
-            pod_template.spec.volumes = (pod_template.spec.volumes or []) + pod_template_volumes # type: ignore[no-any-return]
+            assert pod_template.spec is not None
+            if pod_template.spec.volumes is None:
+                pod_template.spec.volumes = []
+            pod_template.spec.volumes += pod_template_volumes
         
         # add env vars
         if component.spec.environment:
@@ -146,6 +112,7 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
 
         # add networking
         if component.spec.networking:
+
             # add ports
             if component.spec.networking.ports:
                 for port_name, port in component.spec.networking.ports.items():
@@ -162,6 +129,20 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                         name=port_name,
                         protocol=port_protocol
                     ))
+
+        # add security
+        if component.spec.security:
+            security = component.spec.security
+
+            # add capabilities
+            if security.cap and security.cap.add:
+                if container.security_context is None:
+                    container.security_context = client.V1SecurityContext()
+                if container.security_context.capabilities is None:
+                    container.security_context.capabilities = client.V1Capabilities()
+                if container.security_context.capabilities.add is None:
+                    container.security_context.capabilities.add = []
+                container.security_context.capabilities.add += security.cap.add
 
         manifests.append(client.ApiClient().sanitize_for_serialization(deployment))
 

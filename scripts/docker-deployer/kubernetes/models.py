@@ -10,6 +10,11 @@ class Resources(BaseModel):
     limits: ResourceSpec | None = None
     requests: ResourceSpec | None = None
 
+class PVCVolumeSource(BaseModel):
+    storage_class: str | None = None
+    size: str
+
+
 # Volume specifications
 class VolumeSource(BaseModel):
     glob: str | None = None
@@ -17,6 +22,8 @@ class VolumeSource(BaseModel):
     file: str | None = None
     data: str | None = None
     secret: bool = Field(default=False)
+    pvc: PVCVolumeSource | None = None
+    host_dir: str | None = None
 
     @model_validator(mode="after")
     def validate_type(self):
@@ -25,6 +32,8 @@ class VolumeSource(BaseModel):
             self.dir,
             self.file,
             self.data,
+            self.pvc,
+            self.host_dir
         ] if i is not None]
 
         if len(selected) != 1:
@@ -32,7 +41,7 @@ class VolumeSource(BaseModel):
         return self
 
     def is_single(self):
-        return (self.file is not None) or (self.data is not None)
+        return any(i is not None for i in (self.file, self.data))
 
     def human_name(self) -> str:
         return self.glob or self.dir or self.file or self.data or "VolumeSource"
@@ -120,13 +129,24 @@ class PortConfig(BaseModel):
     port: int
     protocol: str = Field(default='TCP')
 
+class IPAddressConfig(BaseModel):
+    ip: str
+    ports: list[str]
+
 class NetworkingSpec(BaseModel):
     dependencies: list[NetworkingDependency] | None = None
     ingresses: list[IngressConfig] | None = None
+    ip_addresses: list[IPAddressConfig] | None = None
     ports: dict[str, int | PortConfig] | None = None
 
 class ComponentNetworking(BaseModel):
     ingress: IngressConfig | None = None
+
+class SecurityCapSpec(BaseModel):
+    add: list[str] | None = None
+
+class SecuritySpec(BaseModel):
+    cap: SecurityCapSpec | None = None
 
 # Component spec
 class ComponentSpec(BaseModel):
@@ -134,6 +154,7 @@ class ComponentSpec(BaseModel):
     networking: NetworkingSpec | None = None
     volumes: list[VolumeSpec] | None = None
     environment: list[EnvironmentSpec] | None = None
+    security: SecuritySpec | None = None
 
 # Metadata can be either a string shorthand or a full object
 class ComponentMetadata(BaseModel):
@@ -164,10 +185,18 @@ class AppMetadata(BaseModel):
     namespace: str
     name: str
 
+class AppDefaultsPVC(BaseModel):
+    storage_class: str | None = None
+    size: str | None = None
+
+class AppDefaults(BaseModel):
+    pvc: AppDefaultsPVC | None = None
+
 # Root app definition
 class AppDefinition(BaseModel):
     metadata: AppMetadata
     spec: AppSpec
+    defaults: AppDefaults = Field(default_factory=AppDefaults)
 
 
 def validate_app_yaml(app_yaml: dict) -> AppDefinition:

@@ -1,4 +1,3 @@
-from sys import api_version
 from .models import *
 from typing import Any
 from kubernetes import client

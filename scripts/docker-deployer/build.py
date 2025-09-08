@@ -7,8 +7,10 @@ from .lib.hydration import hydrate_string
 from .lib.yaml_tools import deep_merge, load_file as load_yaml_file
 from .lib.tar_tools import tar, encrypt
 from .lib.transform import Transformation
+from .lib.configuration import parse_bool_env_var
 
 CONTAINER_KEY = 'COM_HAONDT_CONTAINER'
+DEBUG = parse_bool_env_var('DEBUG')
 
 def load_file(fn):
     with open(fn, 'r') as f:
@@ -146,10 +148,13 @@ def main():
     build_project(map['projects'][args.project], key, args.project)
 
 if __name__ == '__main__':
-    try:
+    if DEBUG:
         main()
-    # discard stack trace
-    except Exception as e:
-        print(f"{type(e).__name__}:", e, file=sys.stderr)
-        exit(1)
+    else:
+        try:
+            main()
+        # discard stack trace
+        except Exception as e:
+            print(f"{type(e).__name__}:", e, file=sys.stderr)
+            exit(1)
 

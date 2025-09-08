@@ -4,7 +4,9 @@ from gitdb.util import sys
 import requests
 import json
 from .yaml_tools import load_file
+from .configuration import parse_bool_env_var
 
+DEBUG = parse_bool_env_var('DEBUG')
 
 @functools.cache
 def get_env(key):
@@ -20,6 +22,8 @@ def try_get_env(key, default: str | None = None) -> str | None:
 
 # execute a plugin
 def execute_plugin(name, args) -> str:
+    if DEBUG:
+        return name + "+" + "-".join(args)
     if name == 'secret':
         if len(args) != 2:
             print(f"Unexpected number of arguments for plugin \'secret\': {args}", file=sys.stderr)
