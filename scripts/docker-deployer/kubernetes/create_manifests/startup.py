@@ -10,7 +10,8 @@ def create_startup_init_containers(args: ComponentManifestArguments, tasks: list
 
     for task in tasks:
         if task.chown is not None:
-            command = ["sh", "-c", "chown"]
+            command = ["chown"]
+
             if task.chown.recursive:
                 command.append("-R")
             command.append(task.chown.owner)
