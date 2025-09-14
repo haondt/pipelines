@@ -12,7 +12,7 @@ class Resources(BaseModel):
 
 class PVCVolumeSource(BaseModel):
     storage_class: str | None = None
-    size: str
+    size: str | None = None
 
 # Volume specifications
 class VolumeSource(BaseModel):
