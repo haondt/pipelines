@@ -37,7 +37,7 @@ def build_app_yaml(project_config, project_dir_name, app_dir_name: str, base_env
 
     # get components in app
     if component_base_yaml is not None:
-        components = app_loaded['spec']['components'].keys()
+        components = app_loaded['components'].keys()
         for component in components:
             # hydrate component_base_yaml with component name and app + base environment
             component_env = app_env.copy()
@@ -49,10 +49,9 @@ def build_app_yaml(project_config, project_dir_name, app_dir_name: str, base_env
             app_loaded = deep_merge(component_base_loaded, app_loaded)
 
             # parse docker image
-            docker_image = app_loaded.get('spec', {}) \
+            docker_image = app_loaded \
                 .get('components', {}) \
                 .get(component, {}) \
-                .get('spec', {}) \
                 .get('image')
             docker_image_version = None
             docker_image_name = None
@@ -124,10 +123,8 @@ def get_static_default_component_yaml(component_name: str, component_env: Enviro
         result['metadata']['annotations']['deployment.haondt.dev/image'] = image
 
     return {
-        'spec': {
-            'components': {
-                component_name: result
-            }
+        'components': {
+            component_name: result
         }
     }
 

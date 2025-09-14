@@ -10,12 +10,12 @@ from .service import get_service_name
 def create_network_policy_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
 
-    for component_name, component in args.app_def.spec.components.items():
+    for component_name, component in args.app_def.components.items():
         component_labels = args.component_labels_factory(component)
         component_annotations = args.component_annotations_factory(component)
         
         # add network dependencies
-        if not component.spec.networking or not component.spec.networking.dependencies:
+        if not component.networking or not component.networking.dependencies:
             continue
 
         component_selector = client.V1NetworkPolicyPeer(
@@ -28,7 +28,7 @@ def create_network_policy_manifests(args: ManifestArguments) -> list[dict[str, A
             })
         )
 
-        for net_dep in component.spec.networking.dependencies:
+        for net_dep in component.networking.dependencies:
             dep_namespace = args.app_def.metadata.namespace
             dep_app = args.app_def.metadata.name
             dep_component = net_dep.name

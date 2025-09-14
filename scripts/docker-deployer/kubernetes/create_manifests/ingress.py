@@ -13,11 +13,11 @@ def get_network_policy_name(args: ManifestArguments, component_name: str, host: 
 def create_ingress_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
 
-    for component_name, component in args.app_def.spec.components.items():
+    for component_name, component in args.app_def.components.items():
         component_labels = args.component_labels_factory(component)
         component_annotations = args.component_annotations_factory(component)
 
-        networking = component.spec.networking
+        networking = component.networking
         if not networking or not networking.ingresses:
             continue
 

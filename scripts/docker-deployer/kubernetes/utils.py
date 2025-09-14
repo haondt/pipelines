@@ -1,4 +1,6 @@
-import os, hashlib, re
+import os, hashlib, re, json
+
+from pydantic import BaseModel
 
 def load_file(fn):
     if os.path.isfile(fn):
@@ -29,6 +31,11 @@ def parse_env_string(s: str) -> dict[str, str]:
 def hash_str(s: str, length: int = 12) -> str:
     h = hashlib.sha256(s.encode('utf-8')).hexdigest()
     return h[:length]
+
+def generate_stable_id(m: BaseModel, length: int = 8) -> str:
+    d = m.model_dump(mode="json")
+    j = json.dumps(d, sort_keys=True)
+    return hash_str(j, length)
 
 def make_config_map_key(path: str) -> str:
     safe = re.sub(r'[^A-Za-z0-9.\-_]', '__', path)

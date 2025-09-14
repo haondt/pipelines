@@ -154,13 +154,27 @@ class SecurityCapSpec(BaseModel):
 class SecuritySpec(BaseModel):
     cap: SecurityCapSpec | None = None
 
-# Component spec
-class ComponentSpec(BaseModel):
-    image: str
-    networking: NetworkingSpec | None = None
-    volumes: dict[str, VolumeSpec] | None = None
-    environment: list[EnvironmentSpec] | None = None
-    security: SecuritySpec | None = None
+class ChownStartupTask(BaseModel):
+    path: str | None = None
+    paths: list[str] | None = None
+    owner: str
+    recursive: bool = Field(default=False)
+
+class StartupTask(BaseModel):
+    chown: ChownStartupTask | None = None
+
+    @model_validator(mode="after")
+    def validate_type(self):
+        selected = [i for i in [
+            self.chown,
+        ] if i is not None]
+
+        if len(selected) != 1:
+            raise ValueError(f"Exactly one type must be configured. found {selected}")
+        return self
+
+class StartupSpec(BaseModel):
+    tasks: list[StartupTask] | None = None
 
 # Metadata can be either a string shorthand or a full object
 class ComponentMetadata(BaseModel):
@@ -172,16 +186,19 @@ class ComponentMetadata(BaseModel):
 # Full component definition
 class Component(BaseModel):
     metadata: ComponentMetadata
+
+    image: str
+    networking: NetworkingSpec | None = None
+    volumes: dict[str, VolumeSpec] | None = None
+    environment: list[EnvironmentSpec] | None = None
+    security: SecuritySpec | None = None
+    startup: StartupSpec | None = None
     resources: Resources | None = None
-    spec: ComponentSpec
     
     # Custom fields that might be in your YAML
     class Config:
         extra = "allow"  # Allow extra fields like x-tl
 
-# Top-level spec
-class AppSpec(BaseModel):
-    components: dict[str, Component]
 
 # App metadata
 class AppMetadata(BaseModel):
@@ -194,13 +211,17 @@ class AppDefaultsPVC(BaseModel):
     storage_class: str | None = None
     size: str | None = None
 
+class AppDefaultsImages(BaseModel):
+    startup_tasks_chown: str = Field(default='busybox')
+
 class AppDefaults(BaseModel):
     pvc: AppDefaultsPVC | None = None
+    images: AppDefaultsImages = Field(default_factory=AppDefaultsImages)
 
 # Root app definition
 class AppDefinition(BaseModel):
     metadata: AppMetadata
-    spec: AppSpec
+    components: dict[str, Component]
     defaults: AppDefaults = Field(default_factory=AppDefaults)
 
 

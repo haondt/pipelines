@@ -1,3 +1,4 @@
+from pydantic_core.core_schema import none_schema
 from .models import *
 from .volume import create_volume_manifest
 from .environment import create_environment_manifest
@@ -6,11 +7,12 @@ from kubernetes import client
 import os
 from ..utils import coerce_dns_name
 from .service import get_service_name
+from .startup import create_startup_init_containers
 
 def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
 
-    for component_name, component in args.app_def.spec.components.items():
+    for component_name, component in args.app_def.components.items():
         component_labels = args.component_labels_factory(component)
         component_annotations = args.component_annotations_factory(component)
         component_args = ComponentManifestArguments(
@@ -22,7 +24,7 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
             component_annotations=component_annotations,
             compiled_files_dir=args.compiled_files_dir
         )
-        image = component.spec.image
+        image = component.image
         
         resources_dict = {}
         if component.resources:
@@ -41,8 +43,9 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         # Create pod template spec
         pod_template = client.V1PodTemplateSpec(
             metadata=client.V1ObjectMeta(labels=component_labels, annotations=component_annotations),
-            spec=client.V1PodSpec(containers=[container])
+            spec=client.V1PodSpec(containers=[container]),
         )
+        assert pod_template.spec is not None
         
         # Create deployment spec
         deployment_spec = client.V1DeploymentSpec(
@@ -68,10 +71,10 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         )
 
         # add volumes
-        if component.spec.volumes:
+        if component.volumes:
             pod_template_volumes = []
 
-            for volume_id, volume_spec in component.spec.volumes.items():
+            for volume_id, volume_spec in component.volumes.items():
                 volume_manifest_name = volume_id
 
                 volume_manifests, pod_volumes, pod_volume_mounts = create_volume_manifest(component_args, volume_manifest_name, volume_spec)
@@ -88,8 +91,8 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
             pod_template.spec.volumes += pod_template_volumes
         
         # add env vars
-        if component.spec.environment:
-            for environment_spec in component.spec.environment:
+        if component.environment:
+            for environment_spec in component.environment:
                 environment_manifest_name = f"{args.app_def.metadata.name}-{component_name}-environment-{environment_spec.id}"
                 environment_manifest = create_environment_manifest(component_args, environment_manifest_name, environment_spec)
                 manifests.append(environment_manifest)
@@ -111,11 +114,11 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                     ))
 
         # add networking
-        if component.spec.networking:
+        if component.networking:
 
             # add ports
-            if component.spec.networking.ports:
-                for port_name, port in component.spec.networking.ports.items():
+            if component.networking.ports:
+                for port_name, port in component.networking.ports.items():
                     port_number = port
                     port_protocol = 'TCP'
                     if isinstance(port, PortConfig):
@@ -131,8 +134,8 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                     ))
 
         # add security
-        if component.spec.security:
-            security = component.spec.security
+        if component.security:
+            security = component.security
 
             # add capabilities
             if security.cap and security.cap.add:
@@ -143,6 +146,17 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                 if container.security_context.capabilities.add is None:
                     container.security_context.capabilities.add = []
                 container.security_context.capabilities.add += security.cap.add
+
+        # add startup
+        if component.startup:
+
+            # add init containers
+            if component.startup.tasks:
+                init_containers = create_startup_init_containers(args, component.startup.tasks, container.volume_mounts)
+                if len(init_containers) > 0:
+                    if pod_template.spec.init_containers is None:
+                        pod_template.spec.init_containers = []
+                    pod_template.spec.init_containers += init_containers
 
         manifests.append(client.ApiClient().sanitize_for_serialization(deployment))
 
