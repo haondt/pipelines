@@ -14,7 +14,6 @@ class PVCVolumeSource(BaseModel):
     storage_class: str | None = None
     size: str
 
-
 # Volume specifications
 class VolumeSource(BaseModel):
     glob: str | None = None
@@ -131,9 +130,18 @@ class IPAddressConfig(BaseModel):
     ip: str
     ports: list[str]
 
+class RatholeRouteConfig(BaseModel):
+    port: str
+    host: str
+    virtual_path: str | None = None
+    virtual_dest: str | None = None
+    max_body_size: str | None = None
+    connection_timeout: str | None = None
+
 class NetworkingSpec(BaseModel):
     dependencies: list[NetworkingDependency] | None = None
     ingresses: list[IngressConfig] | None = None
+    rathole_routes: list[RatholeRouteConfig] | None = None
     ip_addresses: list[IPAddressConfig] | None = None
     ports: dict[str, int | PortConfig] | None = None
 
@@ -164,7 +172,6 @@ class ComponentMetadata(BaseModel):
 # Full component definition
 class Component(BaseModel):
     metadata: ComponentMetadata
-    networking: ComponentNetworking | None = None
     resources: Resources | None = None
     spec: ComponentSpec
     
