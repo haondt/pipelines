@@ -8,7 +8,7 @@ import os
 from ..utils import coerce_dns_name
 from .service import get_service_name
 from .startup import create_startup_init_containers
-from .charon import create_charon_manifests
+from .charon import create_charon_component_manifests
 
 def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
@@ -161,7 +161,7 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                     pod_template.spec.init_containers += init_containers
 
         if component.charon:
-            manifests += create_charon_manifests(component_args, component.charon, deployment, pod_template.spec.volumes)
+            manifests += create_charon_component_manifests(component_args, component.charon, deployment, pod_template.spec.volumes)
 
         manifests.append(client.ApiClient().sanitize_for_serialization(deployment))
 

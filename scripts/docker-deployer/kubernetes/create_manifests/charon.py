@@ -1,3 +1,4 @@
+from sys import api_version
 from pydantic_core.core_schema import none_schema
 from .models import *
 from .volume import create_volume_manifest
@@ -10,8 +11,104 @@ from ..utils import coerce_dns_name, generate_stable_id, hash_str, make_config_m
 from ...lib.yaml_tools import deep_merge
 from .service import get_service_name
 from .startup import create_startup_init_containers
+_api_client = client.ApiClient()
 
-def create_charon_manifests(args: ComponentManifestArguments, configs: list[CharonConfig], deployment: client.V1Deployment, component_volumes: list[client.V1Volume]) -> list[dict[str, Any]]:
+
+def create_role_binding(namespace: str, name: str, service_account_namespace:str, service_account: str, role: str):
+    return _api_client.sanitize_for_serialization(client.V1RoleBinding(
+        api_version='rbac.authorization.k8s.io/v1',
+        kind='RoleBinding',
+        metadata=client.V1ObjectMeta(
+            name=name,
+            namespace=namespace
+        ),
+        subjects=[client.RbacV1Subject(
+            kind='ServiceAccount',
+            name=service_account,
+            namespace=service_account_namespace
+        )],
+        role_ref=client.V1RoleRef(
+            kind='Role',
+            name=role,
+            api_group='rbac.authorization.k8s.io'
+        )
+    ))
+
+def create_role(namespace: str, name: str, api_groups: list[str], resources: list[str], verbs: list[str]):
+    return _api_client.sanitize_for_serialization(client.V1Role(
+        api_version='rbac.authorization.k8s.io/v1',
+        kind='Role',
+        metadata=client.V1ObjectMeta(
+            name=name,
+            namespace=namespace
+        ),
+        rules=[client.V1PolicyRule(
+            api_groups=api_groups,
+            resources=resources,
+            verbs=verbs
+        )]
+    ))
+
+def create_role_and_binding(namespace: str, name: str, api_groups: list[str], resources: list[str], verbs: list[str], service_account_namespace: str, service_account: str):
+    role = create_role(namespace, name, api_groups, resources, verbs)
+    binding = create_role_binding(namespace, name, service_account_namespace, service_account, name)
+    return [role, binding]
+
+def get_service_account_name():
+    return 'charon-k8s-job'
+
+def create_charon_app_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
+    manifests = []
+
+    service_account_name = get_service_account_name()
+    service_account = client.V1ServiceAccount(
+        api_version="v1",
+        kind="ServiceAccount",
+        metadata=client.V1ObjectMeta(
+            name=service_account_name,
+            namespace=args.app_def.metadata.namespace
+        )
+    )
+    manifests.append(_api_client.sanitize_for_serialization(service_account))
+
+    manifests += create_role_and_binding(
+        name='charon-backup-job-reader',
+        namespace=args.app_def.metadata.namespace,
+        api_groups=['charon.haondt.dev'],
+        resources=['backupjobs'],
+        verbs=['get', 'list'],
+        service_account_namespace=args.app_def.metadata.namespace,
+        service_account=service_account_name
+    )
+
+    manifests.append(create_role_binding(
+        name=f'{args.app_def.metadata.namespace}-default-config-map-reader',
+        namespace='charon',
+        service_account_namespace=args.app_def.metadata.namespace,
+        service_account=service_account_name,
+        role='job-base-configmaps'
+    ))
+    manifests.append(create_role_binding(
+        name=f'{args.app_def.metadata.namespace}-default-secret-reader',
+        namespace='charon',
+        service_account_namespace=args.app_def.metadata.namespace,
+        service_account=service_account_name,
+        role='job-base-secrets'
+    ))
+
+    manifests += create_role_and_binding(
+        name='charon-deployment-mutator',
+        namespace=args.app_def.metadata.namespace,
+        api_groups=['apps'],
+        resources=['deployments', 'deployments/scale'],
+        verbs=['get', 'list', 'patch', 'scale'],
+        service_account_namespace=args.app_def.metadata.namespace,
+        service_account=service_account_name
+    )
+
+    return manifests
+
+def create_charon_component_manifests(args: ComponentManifestArguments, configs: list[CharonConfig], deployment: client.V1Deployment, component_volumes: list[client.V1Volume]) -> list[dict[str, Any]]:
     assert deployment.metadata is not None
     assert deployment.spec is not None
 
@@ -43,22 +140,13 @@ def create_charon_manifests(args: ComponentManifestArguments, configs: list[Char
                 'repositoryConfigs': []
             }
         }
-        service_account_name = job_name
-        service_account = client.V1ServiceAccount(
-            api_version="v1",
-            kind="ServiceAccount",
-            metadata=client.V1ObjectMeta(
-                name=service_account_name,
-                namespace=args.app_def.metadata.namespace
-            )
-        )
         job_spec = client.V1JobSpec(
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(
                     name=job_name
                 ),
                 spec=client.V1PodSpec(
-                    service_account_name=service_account_name,
+                    service_account_name=get_service_account_name(),
                     restart_policy='OnFailure',
                     volumes=[],
                     containers=[client.V1Container(
@@ -163,7 +251,6 @@ def create_charon_manifests(args: ComponentManifestArguments, configs: list[Char
                     for sub_path in v:
                         raw_config += f'  - {base_path}{sub_path}\n'
 
-                    # volume_spec = volume_specs[k]
                     component_volume = None
                     for v in component_volumes:
                         if v.name == k:
@@ -217,7 +304,7 @@ def create_charon_manifests(args: ComponentManifestArguments, configs: list[Char
                     job_template=client.V1JobTemplateSpec(spec=job_spec)
                 )
             )
-            manifests.append(client.ApiClient().sanitize_for_serialization(cron_job))
+            manifests.append(_api_client.sanitize_for_serialization(cron_job))
         else:
             job_spec.ttl_seconds_after_finished = 3600
             job = client.V1Job(
@@ -229,12 +316,11 @@ def create_charon_manifests(args: ComponentManifestArguments, configs: list[Char
                 ),
                 spec=job_spec
             )
-            manifests.append(client.ApiClient().sanitize_for_serialization(job))
+            manifests.append(_api_client.sanitize_for_serialization(job))
 
 
         # manifests.append(config.model_dump(mode='json'))
         manifests.append(backup_job)
-        manifests.append(client.ApiClient().sanitize_for_serialization(service_account))
 
     return manifests
 

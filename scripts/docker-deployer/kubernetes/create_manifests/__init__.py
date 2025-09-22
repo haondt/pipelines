@@ -10,6 +10,7 @@ from .network_policy import create_network_policy_manifests
 from .ingress import create_ingress_manifests
 from .ip_address import create_ip_address_manifests
 from .rathole import create_rathole_manifests
+from .charon import create_charon_app_manifests
 
 from typing import Any
 
@@ -28,6 +29,7 @@ def create_manifests(app_def: AppDefinition, app_env: Environment, compiled_file
     )
     manifests = []
     manifests += create_deployment_manifests(args)
+    manifests += create_charon_app_manifests(args)
     manifests += create_namespace_manifests(args)
     manifests += create_service_manifests(args)
     manifests += create_network_policy_manifests(args)
