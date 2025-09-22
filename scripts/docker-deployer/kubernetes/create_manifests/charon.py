@@ -117,7 +117,7 @@ def create_charon_manifests(args: ComponentManifestArguments, configs: list[Char
                     if config_volume.dest.file:
                         volume_source_items = [client.V1KeyToPath(
                             key=config_volume.secret.key,
-                            path=config_volume.dest.file
+                            path=os.path.basename(config_volume.dest.file)
                         )]
                         volume_mount = client.V1VolumeMount(
                             name=volume_name,
@@ -160,7 +160,6 @@ def create_charon_manifests(args: ComponentManifestArguments, configs: list[Char
                         mount_path=base_path,
                         name=k
                     ))
-
 
                 item = {'raw':raw_config}
 
