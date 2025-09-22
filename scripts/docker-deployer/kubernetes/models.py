@@ -183,21 +183,6 @@ class ComponentMetadata(BaseModel):
     annotations: dict[str, str] = {}
     name: str
 
-# Full component definition
-class Component(BaseModel):
-    metadata: ComponentMetadata
-
-    image: str
-    networking: NetworkingSpec | None = None
-    volumes: dict[str, VolumeSpec] | None = None
-    environment: list[EnvironmentSpec] | None = None
-    security: SecuritySpec | None = None
-    startup: StartupSpec | None = None
-    resources: Resources | None = None
-    
-    # Custom fields that might be in your YAML
-    class Config:
-        extra = "allow"  # Allow extra fields like x-tl
 
 
 # App metadata
@@ -213,10 +198,67 @@ class AppDefaultsPVC(BaseModel):
 
 class AppDefaultsImages(BaseModel):
     startup_tasks_chown: str = Field(default='busybox')
+    charon_k8s_job: str = Field(default='haumea/charon-k8s-job')
+
+class SecretValueRef(BaseModel):
+    namespace: str
+    name: str
+    key: str
+
+class ConfigMapValueRef(BaseModel):
+    namespace: str
+    name: str
+    key: str
+
+class CharonBackend(BaseModel):
+    subpath: str | None = None
+
+class CharonRepositoryConfig(BaseModel):
+    config_map: ConfigMapValueRef | None = None
+    secret: SecretValueRef | None = None
+    raw: str | None = None
+
+class CharonVolume(BaseModel):
+    secret: SecretValueRef | None = None
+    dest: VolumeDestination
+
+class CharonSource(BaseModel):
+    volumes: dict[str, list[str]] | None = None
+
+class BaseCharonConfig(BaseModel):
+    schedule: str | None = None
+    name: str | None = None
+    repository_configs: list[CharonRepositoryConfig] | None = None
+    volumes: list[CharonVolume] | None = None
+    source: CharonSource | None = None 
+    scale_down_deployment: bool | None = None
+
+class CharonConfig(BaseCharonConfig):
+    overlays: list[str] = Field(default_factory=lambda: [])
+
+class AppDefaultsCharon(BaseModel):
+    overlays: dict[str, BaseCharonConfig] = Field(default_factory=lambda: {})
 
 class AppDefaults(BaseModel):
     pvc: AppDefaultsPVC | None = None
     images: AppDefaultsImages = Field(default_factory=AppDefaultsImages)
+    charon: AppDefaultsCharon = Field(default_factory=AppDefaultsCharon)
+
+class Component(BaseModel):
+    metadata: ComponentMetadata
+
+    image: str
+    networking: NetworkingSpec | None = None
+    volumes: dict[str, VolumeSpec] | None = None
+    environment: list[EnvironmentSpec] | None = None
+    security: SecuritySpec | None = None
+    startup: StartupSpec | None = None
+    resources: Resources | None = None
+    charon: list[CharonConfig] | None = None
+    
+    # Custom fields that might be in your YAML
+    class Config:
+        extra = "allow"  # Allow extra fields like x-tl
 
 # Root app definition
 class AppDefinition(BaseModel):
@@ -227,3 +269,4 @@ class AppDefinition(BaseModel):
 
 def validate_app_yaml(app_yaml: dict) -> AppDefinition:
     return AppDefinition.model_validate(app_yaml)
+

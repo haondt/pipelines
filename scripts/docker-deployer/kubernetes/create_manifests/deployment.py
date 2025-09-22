@@ -8,6 +8,7 @@ import os
 from ..utils import coerce_dns_name
 from .service import get_service_name
 from .startup import create_startup_init_containers
+from .charon import create_charon_manifests
 
 def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
@@ -22,7 +23,8 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
             component_labels=component_labels,
             app_annotations=args.app_annotations,
             component_annotations=component_annotations,
-            compiled_files_dir=args.compiled_files_dir
+            compiled_files_dir=args.compiled_files_dir,
+            component_name=component_name
         )
         image = component.image
         
@@ -152,11 +154,14 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
 
             # add init containers
             if component.startup.tasks:
-                init_containers = create_startup_init_containers(args, component.startup.tasks, container.volume_mounts)
+                init_containers = create_startup_init_containers(component_args, component.startup.tasks, container.volume_mounts)
                 if len(init_containers) > 0:
                     if pod_template.spec.init_containers is None:
                         pod_template.spec.init_containers = []
                     pod_template.spec.init_containers += init_containers
+
+        if component.charon:
+            manifests += create_charon_manifests(component_args, component.charon, deployment, pod_template.spec.volumes)
 
         manifests.append(client.ApiClient().sanitize_for_serialization(deployment))
 

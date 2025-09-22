@@ -29,3 +29,4 @@ class ComponentManifestArguments:
     app_annotations: dict[str, str]
     component_annotations: dict[str, str]
     compiled_files_dir: str
+    component_name: str

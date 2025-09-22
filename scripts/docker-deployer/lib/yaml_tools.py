@@ -110,7 +110,7 @@ def load_file(fn,
 
 # deep merge two dictionaries created from yaml
 # when merging primitives, the one from d2 is preferred
-def deep_merge(d1, d2, conflicts="new", path=""):
+def deep_merge(d1, d2, conflicts="new", path="", overwrite_with_none=True):
     if conflicts not in ["new", "old", "err"]:
         raise ValueError("Unexpected conflict resolution:" + conflicts)
     def merge_list(l1, l2):
@@ -128,6 +128,9 @@ def deep_merge(d1, d2, conflicts="new", path=""):
         if k not in result:
             result[k] = v
             continue
+        if v is None:
+            if not overwrite_with_none:
+                continue
         if type(v) != type(result[k]):
             if conflicts == "new":
                 result[k] = v
@@ -135,7 +138,7 @@ def deep_merge(d1, d2, conflicts="new", path=""):
                 raise KeyError(f"Multiple entries found for key: {path}.{k}")
             continue
         if isinstance(v, dict):
-            result[k] = deep_merge(result[k], v, conflicts, path + "." + k)
+            result[k] = deep_merge(result[k], v, conflicts, path + "." + k, overwrite_with_none=overwrite_with_none)
             continue
         if isinstance(v, (tuple, list)):
             result[k] = merge_list(result[k], v)
