@@ -94,7 +94,7 @@ docker-deploy-{{ project }}-{{ app }}:
   script:
     - make -f {{ scripts_dir }}/docker-deployer/makefile untar PROJECT={{ project }} APP={{ app }}
     - kubectl config use-context {{ project_config.context }} --kubeconfig {{ project_config.kubeconfig }}
-    - kapp deploy --apply-timeout 5m -a {{ project_config.name | default(project) }}-{{ app }} -f {{ project }}-{{ app }}-deploy/{{ project }}-{{ app }}.yml --kubeconfig {{ project_config.kubeconfig }} --yes
+    - kapp deploy --apply-timeout 5m --wait-timeout 5m -a {{ project_config.name | default(project) }}-{{ app }} -f {{ project }}-{{ app }}-deploy/{{ project }}-{{ app }}.yml --kubeconfig {{ project_config.kubeconfig }} --yes
 
 {% endfor %}
 
@@ -117,7 +117,7 @@ docker-remove-{{ project }}-{{ app }}:
       job: generate
   script:
     - kubectl config use-context {{ project_config.context }} --kubeconfig {{ project_config.kubeconfig }}
-    - kapp delete --apply-timeout 5m -a {{ project_config.name | default(project) }}-{{ app }} --kubeconfig {{ project_config.kubeconfig }} --yes
+    - kapp delete --apply-timeout 5m --wait-timeout 5m -a {{ project_config.name | default(project) }}-{{ app }} --kubeconfig {{ project_config.kubeconfig }} --yes
 
 {% endfor %}
 

@@ -114,6 +114,22 @@ def create_charon_manifests(args: ComponentManifestArguments, configs: list[Char
             for config_volume in config.volumes:
                 if config_volume.secret:
                     volume_name = coerce_dns_name(f'{config_volume.secret.name}-{config_volume.secret.key}-{generate_stable_id(config_volume.secret)}')
+                    local_secret_name=f'{config_volume.secret.namespace}-{config_volume.secret.name}-mirror'
+                    
+                    mirrored_secret = client.V1Secret(
+                        api_version="v1",
+                        kind="Secret",
+                        metadata=client.V1ObjectMeta(
+                            name=local_secret_name,
+                            namespace=args.app_def.metadata.namespace,
+                            annotations={
+                                'reflector.v1.k8s.emberstack.com/reflects': f'{config_volume.secret.namespace}/{config_volume.secret.name}',
+                                'reflector.v1.k8s.emberstack.com/reflected-version': ''
+                            }
+                        )
+                    )
+                    manifests.append(client.ApiClient().sanitize_for_serialization(mirrored_secret))
+
                     if config_volume.dest.file:
                         volume_source_items = [client.V1KeyToPath(
                             key=config_volume.secret.key,
@@ -131,7 +147,7 @@ def create_charon_manifests(args: ComponentManifestArguments, configs: list[Char
                     job_spec.template.spec.volumes.append(client.V1Volume(
                         name=volume_name,
                         secret=client.V1SecretVolumeSource(
-                            secret_name=config_volume.secret.name,
+                            secret_name=local_secret_name,
                             items=volume_source_items
                         )
                     ))
