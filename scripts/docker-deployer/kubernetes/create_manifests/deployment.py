@@ -43,6 +43,8 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
 
         if component.command:
             container.command = component.command
+        if component.args:
+            container.args = component.args
 
         # Create pod template spec
         pod_template = client.V1PodTemplateSpec(
