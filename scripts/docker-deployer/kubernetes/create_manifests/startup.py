@@ -35,6 +35,32 @@ def create_startup_init_containers(args: ComponentManifestArguments, tasks: list
                 command=command,
                 volume_mounts=volume_mounts
             ))
+        elif task.chmod is not None:
+            command = ["chmod"]
+
+            if task.chmod.recursive:
+                command.append("-R")
+            command.append(task.chmod.mode)
+
+            name = 'startup-chmod-'
+            if task.chmod.path:
+                command.append(task.chmod.path)
+                if not task.chmod.paths:
+                    name += coerce_dns_name(task.chmod.path) + "-"
+            if task.chmod.paths:
+                command += task.chmod.paths
+
+            if task.chmod.path is None and not task.chmod.paths:
+                raise ValueError(f'At least one path must be specified')
+
+            name += generate_stable_id(task.chmod)
+
+            containers.append(client.V1Container(
+                name=name,
+                image=args.app_def.defaults.images.startup_tasks_chmod,
+                command=command,
+                volume_mounts=volume_mounts
+            ))
         else:
             raise ValueError(f'Unsupported startup.task type {task}')
 

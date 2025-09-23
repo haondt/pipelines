@@ -160,13 +160,21 @@ class ChownStartupTask(BaseModel):
     owner: str
     recursive: bool = Field(default=False)
 
+class ChmodStartupTask(BaseModel):
+    path: str | None = None
+    paths: list[str] | None = None
+    mode: str
+    recursive: bool = Field(default=False)
+
 class StartupTask(BaseModel):
     chown: ChownStartupTask | None = None
+    chmod: ChmodStartupTask | None = None
 
     @model_validator(mode="after")
     def validate_type(self):
         selected = [i for i in [
             self.chown,
+            self.chmod,
         ] if i is not None]
 
         if len(selected) != 1:
@@ -198,6 +206,7 @@ class AppDefaultsPVC(BaseModel):
 
 class AppDefaultsImages(BaseModel):
     startup_tasks_chown: str = Field(default='busybox')
+    startup_tasks_chmod: str = Field(default='busybox')
     charon_k8s_job: str = Field(default='haumea/charon-k8s-job')
 
 class SecretValueRef(BaseModel):
