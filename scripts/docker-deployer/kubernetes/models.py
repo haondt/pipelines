@@ -248,6 +248,7 @@ class Component(BaseModel):
     metadata: ComponentMetadata
 
     image: str
+    command: list[str] | None = None
     networking: NetworkingSpec | None = None
     volumes: dict[str, VolumeSpec] | None = None
     environment: list[EnvironmentSpec] | None = None
