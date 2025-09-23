@@ -96,10 +96,6 @@ def get_static_default_app_yaml(project_name: str, app_name: str, app_env: Envir
                 'app.kubernetes.io/managed-by': 'haondt-docker-deployer',
                 'app.kubernetes.io/part-of': app_name,
                 PROJECT_SELECTOR_NAME: project_name,
-            },
-            'annotations': {
-                'deployment.haondt.dev/timestamp': datetime.now(timezone.utc).isoformat(),
-                'deployment.haondt.dev/commit': os.environ['CI_COMMIT_SHA']
             }
         }
     }
@@ -116,11 +112,11 @@ def get_static_default_component_yaml(component_name: str, component_env: Enviro
         }
     }
 
-    if version is not None:
-        result['metadata']['annotations']['deployment.haondt.dev/version'] = version
-        result['metadata']['annotations']['app.kubernetes.io/version'] = version
-    if image is not None:
-        result['metadata']['annotations']['deployment.haondt.dev/image'] = image
+    # if version is not None:
+    #     result['metadata']['annotations']['deployment.haondt.dev/version'] = version
+    #     result['metadata']['annotations']['app.kubernetes.io/version'] = version
+    # if image is not None:
+    #     result['metadata']['annotations']['deployment.haondt.dev/image'] = image
 
     return {
         'components': {
