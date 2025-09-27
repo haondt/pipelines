@@ -6,7 +6,7 @@
 {% if project_map.type == 'docker' %}
 
 docker-build-deployment-{{ project }}:
-  stage: deploy
+  stage: build-deployment
   image: {{ images.docker_deployer_v2 }}
   needs:
     - pipeline: $PARENT_PIPELINE_ID
@@ -60,7 +60,7 @@ docker-deploy-{{ project }}:
 
 
 docker-build-deployment-{{ project }}-{{ app }}:
-  stage: deploy
+  stage: build-deployment
   image: {{ images.docker_deployer_v2 }}
   needs:
     - pipeline: $PARENT_PIPELINE_ID
