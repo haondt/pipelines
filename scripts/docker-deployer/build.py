@@ -1,4 +1,5 @@
 import os, yaml, shutil, sys, tempfile, re
+from pathlib import Path
 from types import SimpleNamespace
 import argparse
 
@@ -8,6 +9,7 @@ from .lib.yaml_tools import deep_merge, load_file as load_yaml_file
 from .lib.tar_tools import tar, encrypt
 from .lib.transform import Transformation
 from .lib.configuration import parse_bool_env_var
+from .get_changes import build_repo_map
 
 CONTAINER_KEY = 'COM_HAONDT_CONTAINER'
 DEBUG = parse_bool_env_var('DEBUG')
@@ -73,15 +75,23 @@ def cpy_services(project, destination_dir, services):
         dst = os.path.join(destination_dir, svc)
         shutil.copytree(src, dst, ignore=ignore)
 
+def get_services(project) -> list[str]:
+    base_path = Path(project)
+    services = base_path/"services"
+    service_list = []
+    if not services.is_dir():
+        return []
+    for service in services.iterdir():
+        if service.is_dir() and os.path.isfile(service/"docker-compose.yml"):
+            service_list.append(service.parts[-1])
+    return service_list
+
+
 def build_project(project_map: dict, encryption_key: str, project: str):
-    services: set[str] = set()
+    services = set(get_services(project))
     for k, v in project_map['services'].items():
-        if project_map['status'] == 'modified':
-            if v['status'] != 'removed':
-                services.add(k)
-        elif project_map['status'] == 'unchanged':
-            if v['status'] == 'modified':
-                services.add(k)
+        if v['status'] == 'removed':
+            services.remove(k)
 
     # load base files
     base_env = Environment()

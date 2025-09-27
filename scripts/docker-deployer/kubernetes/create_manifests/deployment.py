@@ -60,7 +60,7 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                 APP_SELECTOR_NAME: args.app_labels[APP_SELECTOR_NAME],
                 COMPONENT_SELECTOR_NAME: component_labels[COMPONENT_SELECTOR_NAME]
             }),
-            template=pod_template,
+            template=pod_template
         )
         
         # Create deployment
