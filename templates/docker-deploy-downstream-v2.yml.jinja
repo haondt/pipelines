@@ -1,4 +1,7 @@
 {% set scripts_dir = 'pipelines/scripts' %}
+stages:
+  - build-deployment
+  - deploy
 
 {% for project, project_map in helpers.get_projects(xtra).items() %}
 {% set project_config = helpers.get_project_config(xtra, project) %}
