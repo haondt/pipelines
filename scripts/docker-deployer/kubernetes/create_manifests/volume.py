@@ -97,7 +97,7 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
         volume_mounts.append(client.V1VolumeMount(
             name=volume_manifest_name,
             mount_path=volume_spec.dest.dir,
-            read_only=True
+            # read_only=True
         ))
 
     elif volume_spec.src.pvc:

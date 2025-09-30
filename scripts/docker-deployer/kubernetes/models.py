@@ -166,15 +166,58 @@ class ChmodStartupTask(BaseModel):
     mode: str
     recursive: bool = Field(default=False)
 
+class GomplateInput(BaseModel):
+    file: str | None = None
+    files: list[str] | None = None
+    dir: str | None = None
+    exclude: str | None = None
+
+    @model_validator(mode="after")
+    def validate_type(self):
+        selected = [i for i in [
+            self.file,
+            self.files,
+            self.dir
+        ] if i is not None]
+
+        if len(selected) != 1:
+            raise ValueError(f"Exactly one type must be configured. found {selected}")
+        return self
+
+class GomplateOutput(BaseModel):
+    file: str | None = None
+    files: list[str] | None = None
+    dir: str | None = None
+
+    @model_validator(mode="after")
+    def validate_type(self):
+        selected = [i for i in [
+            self.file,
+            self.files,
+            self.dir
+        ] if i is not None]
+
+        if len(selected) != 1:
+            raise ValueError(f"Exactly one type must be configured. found {selected}")
+        return self
+
+class GomplateStartupTask(BaseModel):
+    input: GomplateInput
+    output: GomplateOutput
+    extra_args: list[str] | None = None
+    data_sources: dict[str, str] = Field(default_factory=lambda: {})
+
 class StartupTask(BaseModel):
     chown: ChownStartupTask | None = None
     chmod: ChmodStartupTask | None = None
+    gomplate: GomplateStartupTask | None = None
 
     @model_validator(mode="after")
     def validate_type(self):
         selected = [i for i in [
             self.chown,
             self.chmod,
+            self.gomplate
         ] if i is not None]
 
         if len(selected) != 1:
@@ -207,6 +250,7 @@ class AppDefaultsPVC(BaseModel):
 class AppDefaultsImages(BaseModel):
     startup_tasks_chown: str = Field(default='busybox')
     startup_tasks_chmod: str = Field(default='busybox')
+    startup_tasks_gomplate: str = Field(default='hairyhenderson/gomplate')
     charon_k8s_job: str = Field(default='haumea/charon-k8s-job')
 
 class SecretValueRef(BaseModel):

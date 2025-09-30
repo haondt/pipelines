@@ -61,6 +61,45 @@ def create_startup_init_containers(args: ComponentManifestArguments, tasks: list
                 command=command,
                 volume_mounts=volume_mounts
             ))
+        elif task.gomplate is not None:
+            command = ["gomplate"]
+
+            if task.gomplate.input.file:
+                command += ['--file', task.gomplate.input.file]
+            elif task.gomplate.input.files:
+                for file in task.gomplate.input.files:
+                    command += ['--file', file]
+            elif task.gomplate.input.dir:
+                command += ['--input-dir', task.gomplate.input.dir]
+            else:
+                raise ValueError(f'Using unknown input file type {task.gomplate.input}')
+
+            if task.gomplate.output.file:
+                command += ['--out', task.gomplate.output.file]
+            elif task.gomplate.output.files:
+                for file in task.gomplate.output.files:
+                    command += ['--out', file]
+            elif task.gomplate.output.dir:
+                command += ['--output-dir', task.gomplate.output.dir]
+            else:
+                raise ValueError(f'Using unknown output file type {task.gomplate.output}')
+
+            if task.gomplate.data_sources:
+                for k, v in task.gomplate.data_sources.items():
+                    command += ['--datasource', f'{k}={v}']
+
+            if task.gomplate.extra_args:
+                command += task.gomplate.extra_args
+
+
+            name = f'startup-gomplate-{generate_stable_id(task.gomplate)}'
+
+            containers.append(client.V1Container(
+                name=name,
+                image=args.app_def.defaults.images.startup_tasks_gomplate,
+                command=command,
+                volume_mounts=volume_mounts
+            ))
         else:
             raise ValueError(f'Unsupported startup.task type {task}')
 
