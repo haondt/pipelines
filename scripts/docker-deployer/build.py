@@ -90,7 +90,7 @@ def get_services(project) -> list[str]:
 def build_project(project_map: dict, encryption_key: str, project: str):
     services = set(get_services(project))
     for k, v in project_map['services'].items():
-        if v['status'] == 'removed':
+        if v['status'] == 'removed' and k in services:
             services.remove(k)
 
     # load base files
