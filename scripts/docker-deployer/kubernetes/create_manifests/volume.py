@@ -97,7 +97,7 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
         volume_mounts.append(client.V1VolumeMount(
             name=volume_manifest_name,
             mount_path=volume_spec.dest.dir,
-            # read_only=True
+            read_only=True
         ))
 
     elif volume_spec.src.pvc:
@@ -114,6 +114,32 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
             name=volume_manifest_name,
             mount_path=volume_spec.dest.dir,
         ))
+
+    elif volume_spec.src.scratch:
+        volumes.append(client.V1Volume(
+            name=volume_manifest_name,
+            empty_dir=client.V1EmptyDirVolumeSource(
+                size_limit=volume_spec.src.scratch.size
+            )
+        ))
+        volume_mounts.append(client.V1VolumeMount(
+            name=volume_manifest_name,
+            mount_path=volume_spec.dest.dir,
+        ))
+
+    elif volume_spec.src.tmpfs:
+        volumes.append(client.V1Volume(
+            name=volume_manifest_name,
+            empty_dir=client.V1EmptyDirVolumeSource(
+                size_limit=volume_spec.src.tmpfs.size,
+                medium='Memory'
+            )
+        ))
+        volume_mounts.append(client.V1VolumeMount(
+            name=volume_manifest_name,
+            mount_path=volume_spec.dest.dir,
+        ))
+
 
     else:
         pod_template_items = []

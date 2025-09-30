@@ -14,6 +14,12 @@ class PVCVolumeSource(BaseModel):
     storage_class: str | None = None
     size: str | None = None
 
+class ScratchVolumeSource(BaseModel):
+    size: str | None = None
+
+class TmpfsVolumeSource(BaseModel):
+    size: str | None = None
+
 # Volume specifications
 class VolumeSource(BaseModel):
     glob: str | None = None
@@ -23,6 +29,8 @@ class VolumeSource(BaseModel):
     secret: bool = Field(default=False)
     pvc: PVCVolumeSource | None = None
     host_dir: str | None = None
+    scratch: ScratchVolumeSource | None = None
+    tmpfs: TmpfsVolumeSource | None = None
 
     @model_validator(mode="after")
     def validate_type(self):
@@ -32,7 +40,9 @@ class VolumeSource(BaseModel):
             self.file,
             self.data,
             self.pvc,
-            self.host_dir
+            self.host_dir,
+            self.tmpfs,
+            self.scratch
         ] if i is not None]
 
         if len(selected) != 1:
