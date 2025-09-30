@@ -217,17 +217,22 @@ class GomplateStartupTask(BaseModel):
     extra_args: list[str] | None = None
     data_sources: dict[str, str] = Field(default_factory=lambda: {})
 
+class BusyBoxStartupTask(BaseModel):
+    script: str
+
 class StartupTask(BaseModel):
     chown: ChownStartupTask | None = None
     chmod: ChmodStartupTask | None = None
     gomplate: GomplateStartupTask | None = None
+    busybox: BusyBoxStartupTask | None = None
 
     @model_validator(mode="after")
     def validate_type(self):
         selected = [i for i in [
             self.chown,
             self.chmod,
-            self.gomplate
+            self.gomplate,
+            self.busybox
         ] if i is not None]
 
         if len(selected) != 1:
@@ -258,6 +263,7 @@ class AppDefaultsPVC(BaseModel):
     size: str | None = None
 
 class AppDefaultsImages(BaseModel):
+    startup_tasks_busybox: str = Field(default='busybox')
     startup_tasks_chown: str = Field(default='busybox')
     startup_tasks_chmod: str = Field(default='busybox')
     startup_tasks_gomplate: str = Field(default='hairyhenderson/gomplate')

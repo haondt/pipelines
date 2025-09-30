@@ -7,6 +7,7 @@ from kubernetes import client
 
 def create_startup_init_containers(args: ComponentManifestArguments, tasks: list[StartupTask], volume_mounts: list[client.V1VolumeMount] | None ) -> list[client.V1Container]:
     containers: list[client.V1Container] = []
+    additional_manifests = []
 
     for task in tasks:
         if task.chown is not None:
@@ -97,6 +98,16 @@ def create_startup_init_containers(args: ComponentManifestArguments, tasks: list
             containers.append(client.V1Container(
                 name=name,
                 image=args.app_def.defaults.images.startup_tasks_gomplate,
+                command=command,
+                volume_mounts=volume_mounts
+            ))
+        elif task.busybox is not None:
+            command = ["sh", "-c", task.busybox.script]
+
+            name = f'startup-busybox-{generate_stable_id(task.busybox)}'
+            containers.append(client.V1Container(
+                name=name,
+                image=args.app_def.defaults.images.startup_tasks_busybox,
                 command=command,
                 volume_mounts=volume_mounts
             ))
