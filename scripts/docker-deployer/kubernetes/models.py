@@ -163,6 +163,7 @@ class SecurityCapSpec(BaseModel):
 
 class SecuritySpec(BaseModel):
     cap: SecurityCapSpec | None = None
+    sysctls: list[str] | None = None
 
 class ChownStartupTask(BaseModel):
     path: str | None = None

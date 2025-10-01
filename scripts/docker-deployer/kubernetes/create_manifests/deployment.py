@@ -155,6 +155,14 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                 if container.security_context.capabilities.add is None:
                     container.security_context.capabilities.add = []
                 container.security_context.capabilities.add += security.cap.add
+            if security.sysctls:
+                pod_template.spec.security_context = pod_template.spec.security_context or client.V1PodSecurityContext(sysctls=[])
+                for sysctl in security.sysctls:
+                    assert pod_template.spec.security_context.sysctls is not None
+                    pod_template.spec.security_context.sysctls.append(client.V1Sysctl(
+                        name=sysctl,
+                        value="1"
+                    ))
 
         # add startup
         if component.startup:
