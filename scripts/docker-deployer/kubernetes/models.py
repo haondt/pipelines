@@ -1,6 +1,11 @@
 from pydantic import BaseModel, model_validator, Field
 import uuid
 
+def make_uppercase(values, key):
+    if key in values and values[key]:
+        values[key] = values[key].upper()
+    return values
+
 # Resource specifications
 class ResourceSpec(BaseModel):
     cpu: str | None = None
@@ -126,15 +131,33 @@ class IngressConfig(BaseModel):
     protocol: str = Field(default='TCP')
     tls: TLSConfig = Field(default_factory=lambda: TLSConfig())
 
+    @model_validator(mode="before")
+    @classmethod
+    def preprocess(cls, values):
+        make_uppercase(values, 'protocol')
+        return values
+
 class NetworkingDependency(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4().hex))
     name: str
     port: str | int
     protocol: str = Field(default='TCP')
 
+    @model_validator(mode="before")
+    @classmethod
+    def preprocess(cls, values):
+        make_uppercase(values, 'protocol')
+        return values
+
 class PortConfig(BaseModel):
     port: int
     protocol: str = Field(default='TCP')
+
+    @model_validator(mode="before")
+    @classmethod
+    def preprocess(cls, values):
+        make_uppercase(values, 'protocol')
+        return values
 
 class IPAddressConfig(BaseModel):
     ip: str
