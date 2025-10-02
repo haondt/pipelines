@@ -41,6 +41,8 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
             resources=client.V1ResourceRequirements(**resources_dict) if resources_dict else None
         )
 
+            
+
         if component.command:
             container.command = component.command
         if component.args:
@@ -65,7 +67,7 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                 type='Recreate'
             )
         )
-        
+ 
         # Create deployment
         deployment = client.V1Deployment(
             api_version='apps/v1',
@@ -78,6 +80,16 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
             ),
             spec=deployment_spec
         )
+
+        if component.resources and component.resources.gpu.enabled:
+            if container.resources is None:
+                container.resources = client.V1ResourceRequirements()
+            if container.resources.limits is None:
+                container.resources.limits = {}
+            container.resources.limits[component.resources.gpu.resource_name] = 1
+
+            pod_template.spec.runtime_class_name = component.resources.gpu.runtime_class_name
+
 
         # add volumes
         if component.volumes:

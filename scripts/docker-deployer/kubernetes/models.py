@@ -11,9 +11,16 @@ class ResourceSpec(BaseModel):
     cpu: str | None = None
     memory: str | None = None
 
+class GpuConfig(BaseModel):
+    enabled: bool = Field(default=False)
+    resource_name: str = Field(default="nvidia.com/gpu")
+    runtime_class_name: str = Field(default="nvidia")
+
+
 class Resources(BaseModel):
     limits: ResourceSpec | None = None
     requests: ResourceSpec | None = None
+    gpu: GpuConfig = Field(default_factory=GpuConfig)
 
 class PVCVolumeSource(BaseModel):
     storage_class: str | None = None
