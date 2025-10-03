@@ -86,18 +86,18 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
     volumes: list[client.V1Volume] = []
     volume_mounts: list[client.V1VolumeMount] = []
     
-    if volume_spec.src.host_dir:
+    if volume_spec.src.host:
         volumes.append(client.V1Volume(
             name=volume_manifest_name,
             host_path=client.V1HostPathVolumeSource(
-                path=volume_spec.src.host_dir,
-                type='Directory'
+                path=volume_spec.src.host.dir,
+                type='DirectoryOrCreate' if volume_spec.src.host.create else 'Directory'
             )
         ))
         volume_mounts.append(client.V1VolumeMount(
             name=volume_manifest_name,
             mount_path=volume_spec.dest.dir,
-            read_only=True
+            read_only=volume_spec.src.host.read_only
         ))
 
     elif volume_spec.src.pvc:

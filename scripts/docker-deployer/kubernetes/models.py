@@ -32,6 +32,12 @@ class ScratchVolumeSource(BaseModel):
 class TmpfsVolumeSource(BaseModel):
     size: str | None = None
 
+class HostVolumeSource(BaseModel):
+    dir: str
+    read_only: bool = Field(default=True)
+    create: bool = Field(default=False)
+
+
 # Volume specifications
 class VolumeSource(BaseModel):
     glob: str | None = None
@@ -40,7 +46,7 @@ class VolumeSource(BaseModel):
     data: str | None = None
     secret: bool = Field(default=False)
     pvc: PVCVolumeSource | None = None
-    host_dir: str | None = None
+    host: HostVolumeSource | None = None
     scratch: ScratchVolumeSource | None = None
     tmpfs: TmpfsVolumeSource | None = None
 
@@ -52,7 +58,7 @@ class VolumeSource(BaseModel):
             self.file,
             self.data,
             self.pvc,
-            self.host_dir,
+            self.host,
             self.tmpfs,
             self.scratch
         ] if i is not None]
