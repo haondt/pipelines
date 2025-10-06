@@ -154,6 +154,7 @@ class NetworkingDependency(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4().hex))
     name: str
     port: str | int
+    app: str | None = None
     protocol: str = Field(default='TCP')
 
     @model_validator(mode="before")
@@ -294,6 +295,7 @@ class AppMetadata(BaseModel):
     labels: dict[str, str] = {}
     namespace: str
     name: str
+    project: str
 
 class AppDefaultsPVC(BaseModel):
     storage_class: str | None = None

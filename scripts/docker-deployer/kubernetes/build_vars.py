@@ -86,11 +86,15 @@ def parse_docker_image(spec: str) -> tuple[str | None, str | None]:
         tag = f"{tag or ''}@{digest}"
     return name, tag
 
+def get_app_namespace(project_name: str, app_name: str) -> str:
+    return f'{project_name}-{app_name}'
+
 def get_static_default_app_yaml(project_name: str, app_name: str, app_env: Environment) -> dict:
     return {
         'metadata': {
             'name': app_name,
-            'namespace': f'{project_name}-{app_name}',
+            'namespace': get_app_namespace(project_name, app_name),
+            'project': project_name,
             'labels': {
                 'deployment.haondt.dev/managed-by': 'haondt-docker-deployer',
                 'app.kubernetes.io/managed-by': 'haondt-docker-deployer',

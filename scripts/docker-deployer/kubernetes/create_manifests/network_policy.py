@@ -6,6 +6,7 @@ from kubernetes import client
 import os
 from ..utils import coerce_dns_name
 from .service import get_service_name
+from ..build_vars import get_app_namespace
 
 def create_network_policy_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
@@ -29,8 +30,12 @@ def create_network_policy_manifests(args: ManifestArguments) -> list[dict[str, A
         )
 
         for net_dep in component.networking.dependencies:
-            dep_namespace = args.app_def.metadata.namespace
-            dep_app = args.app_def.metadata.name
+            if net_dep.app:
+                dep_app = net_dep.app
+                dep_namespace = get_app_namespace(args.app_def.metadata.project, net_dep.app)
+            else:
+                dep_namespace = args.app_def.metadata.namespace
+                dep_app = args.app_def.metadata.name
             dep_component = net_dep.name
             dep_port = net_dep.port
             dep_protocol = net_dep.protocol
