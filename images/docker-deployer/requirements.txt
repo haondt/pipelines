@@ -5,3 +5,4 @@ cryptography
 kubernetes
 pydantic
 python-dotenv
+Jinja2
