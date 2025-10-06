@@ -350,6 +350,15 @@ class AppDefaults(BaseModel):
     images: AppDefaultsImages = Field(default_factory=AppDefaultsImages)
     charon: AppDefaultsCharon = Field(default_factory=AppDefaultsCharon)
 
+class AlloyLogsSpec(BaseModel):
+    process: str | None = None
+
+class AlloyObservabilitySpec(BaseModel):
+    logs: AlloyLogsSpec | None = None
+
+class ObservabilitySpec(BaseModel):
+    alloy: AlloyObservabilitySpec | None = None
+
 class Component(BaseModel):
     metadata: ComponentMetadata
 
@@ -363,6 +372,7 @@ class Component(BaseModel):
     startup: StartupSpec | None = None
     resources: Resources | None = None
     charon: list[CharonConfig] | None = None
+    observability: ObservabilitySpec | None = None
     
     # Custom fields that might be in your YAML
     class Config:

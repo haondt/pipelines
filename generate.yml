@@ -12,14 +12,14 @@ workflow:
 
 generate:
   stage: bootstrap
-  image: registry.gitlab.com/haondt/cicd/registry/hephaestus:k8s-37876837
+  image: registry.gitlab.com/haondt/cicd/registry/hephaestus:1.1.0
   script:
     - |
       if  [ ! -f pipeline.yml ]; then
         echo "Error: pipeline.yml not found"
         exit 1
       fi
-    - git clone --depth 1 -b k8s https://gitlab.com/haondt/CICD/pipelines ./pipelines
+    - git clone --depth 1 -b main https://gitlab.com/haondt/CICD/pipelines ./pipelines
     - echo "generating downstream pipeline"
     - make -f pipelines/makefile generate
   artifacts:

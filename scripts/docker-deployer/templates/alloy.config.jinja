@@ -1,0 +1,35 @@
+discovery.relabel "{{ job_name }}" {
+    targets = discovery.relabel.pod_logs.output
+
+    rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        regex = "{{ namespace }}"
+        action = "keep"
+    }
+    rule {
+        source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_part_of"]
+        regex = "{{ app_name }}"
+        action = "keep"
+    }
+    rule {
+        source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+        regex = "{{ component_name }}"
+        action = "keep"
+    }
+}
+
+{%- if process %}
+loki.source.kubernetes "{{ job_name }}" {
+    targets    = discovery.relabel.{{ job_name }}.output
+    forward_to = [loki.process.{{ job_name }}.receiver]
+}
+
+loki.process "{{ job_name }}" {
+    {{ process | indent(4) }}
+
+{%- else %}
+loki.source.kubernetes "{{ job_name }}" {
+    targets    = discovery.relabel.{{ job_name }}.output
+{%- endif %}
+    forward_to = [loki.relabel.pod_logs.receiver]
+}
