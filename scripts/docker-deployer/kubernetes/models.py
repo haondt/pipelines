@@ -137,12 +137,16 @@ class TLSConfig(BaseModel):
                 raise ValueError(f"TLS spec must have a host when enabled")
         return self
 
+class NginxConfig(BaseModel):
+    proxy_body_size: str | None = None
+
 class IngressConfig(BaseModel):
     enabled: bool = True
     host: str
     port: str
     protocol: str = Field(default='TCP')
     tls: TLSConfig = Field(default_factory=lambda: TLSConfig())
+    nginx: NginxConfig = Field(default_factory=NginxConfig) 
 
     @model_validator(mode="before")
     @classmethod

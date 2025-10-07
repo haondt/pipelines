@@ -25,6 +25,14 @@ def create_ingress_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
             if not ingress_spec.enabled:
                 continue
 
+            ingress_annotations = component_annotations | {
+                'cert-manager.io/cluster-issuer': 'letsencrypt-prod',
+            }
+
+            if ingress_spec.nginx:
+                if ingress_spec.nginx.proxy_body_size:
+                    ingress_annotations['nginx.ingress.kubernetes.io/proxy-body-size'] = ingress_spec.nginx.proxy_body_size
+
             ingress = client.V1Ingress(
                 api_version="networking.k8s.io/v1",
                 kind="Ingress",
@@ -32,7 +40,7 @@ def create_ingress_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
                     name=get_ingress_name(args, component_name, ingress_spec.host),
                     namespace=args.app_def.metadata.namespace,
                     labels=component_labels,
-                    annotations=component_annotations | { 'cert-manager.io/cluster-issuer': 'letsencrypt-prod' }
+                    annotations=ingress_annotations
                 ),
                 spec=client.V1IngressSpec(
                     ingress_class_name=INGRESS_CLASS_NAME,
@@ -65,6 +73,7 @@ def create_ingress_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
                     hosts=[ingress_spec.tls.host],
                     secret_name=coerce_dns_name(ingress_spec.tls.host + "-" + hash_str(ingress_spec.tls.host, 8))
                 )]
+
 
             network_policy = client.V1NetworkPolicy(
                 api_version="networking.k8s.io/v1",
