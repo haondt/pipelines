@@ -62,6 +62,32 @@ def create_startup_init_containers(args: ComponentManifestArguments, tasks: list
                 command=command,
                 volume_mounts=volume_mounts
             ))
+        elif task.chgrp is not None:
+            command = ["chgrp"]
+
+            if task.chgrp.recursive:
+                command.append("-R")
+            command.append(str(task.chgrp.group))
+
+            name = 'startup-chgrp-'
+            if task.chgrp.path:
+                command.append(task.chgrp.path)
+                if not task.chgrp.paths:
+                    name += coerce_dns_name(task.chgrp.path) + "-"
+            if task.chgrp.paths:
+                command += task.chgrp.paths
+
+            if task.chgrp.path is None and not task.chgrp.paths:
+                raise ValueError(f'At least one path must be specified')
+
+            name += generate_stable_id(task.chgrp)
+
+            containers.append(client.V1Container(
+                name=name,
+                image=args.app_def.defaults.images.startup_tasks_chgrp,
+                command=command,
+                volume_mounts=volume_mounts
+            ))
         elif task.gomplate is not None:
             command = ["gomplate"]
 

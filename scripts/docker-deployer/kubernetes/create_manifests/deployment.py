@@ -177,6 +177,13 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                         value="1"
                     ))
 
+            if security.groups:
+                if pod_template.spec.security_context is None:
+                    pod_template.spec.security_context = client.V1PodSecurityContext()
+                if pod_template.spec.security_context.supplemental_groups is None:
+                    pod_template.spec.security_context.supplemental_groups = []
+                pod_template.spec.security_context.supplemental_groups += security.groups.add # type: ignore
+
         # add startup
         if component.startup:
 

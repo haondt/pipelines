@@ -202,9 +202,13 @@ class ComponentNetworking(BaseModel):
 class SecurityCapSpec(BaseModel):
     add: list[str] | None = None
 
+class SecurityGroupsSpec(BaseModel):
+    add: list[int] | None = None
+
 class SecuritySpec(BaseModel):
     cap: SecurityCapSpec | None = None
     sysctls: list[str] | None = None
+    groups: SecurityGroupsSpec | None = None
 
 class ChownStartupTask(BaseModel):
     path: str | None = None
@@ -216,6 +220,12 @@ class ChmodStartupTask(BaseModel):
     path: str | None = None
     paths: list[str] | None = None
     mode: str
+    recursive: bool = Field(default=False)
+
+class ChgrpStartupTask(BaseModel):
+    path: str | None = None
+    paths: list[str] | None = None
+    group: str | int
     recursive: bool = Field(default=False)
 
 class GomplateInput(BaseModel):
@@ -265,6 +275,7 @@ class BusyBoxStartupTask(BaseModel):
 class StartupTask(BaseModel):
     chown: ChownStartupTask | None = None
     chmod: ChmodStartupTask | None = None
+    chgrp: ChgrpStartupTask | None = None
     gomplate: GomplateStartupTask | None = None
     busybox: BusyBoxStartupTask | None = None
 
@@ -273,6 +284,7 @@ class StartupTask(BaseModel):
         selected = [i for i in [
             self.chown,
             self.chmod,
+            self.chgrp,
             self.gomplate,
             self.busybox
         ] if i is not None]
@@ -309,6 +321,7 @@ class AppDefaultsImages(BaseModel):
     startup_tasks_busybox: str = Field(default='busybox')
     startup_tasks_chown: str = Field(default='busybox')
     startup_tasks_chmod: str = Field(default='busybox')
+    startup_tasks_chgrp: str = Field(default='busybox')
     startup_tasks_gomplate: str = Field(default='hairyhenderson/gomplate')
     charon_k8s_job: str = Field(default='haumea/charon-k8s-job')
 
