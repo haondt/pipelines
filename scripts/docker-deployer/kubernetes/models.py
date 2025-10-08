@@ -15,6 +15,7 @@ class GpuConfig(BaseModel):
     enabled: bool = Field(default=False)
     resource_name: str = Field(default="nvidia.com/gpu")
     runtime_class_name: str = Field(default="nvidia")
+    use_limit: bool = Field(default=False)
 
 
 class Resources(BaseModel):
@@ -125,17 +126,27 @@ class EnvironmentSpec(BaseModel):
             raise ValueError(f"Exactly one type must be configured. found {selected}")
         return self
 
+
+class TlsSecretSource(BaseModel):
+    create: bool | None = None
+    mirror: str | None = None
+
+    @model_validator(mode="after")
+    def validate_type(self):
+        selected = [i for i in [
+            self.create,
+            self.mirror,
+        ] if i is not None]
+
+        if len(selected) > 1:
+            raise ValueError(f"At most one type must be configured. found {selected}")
+        return self
+
 # Networking specifications
 class TLSConfig(BaseModel):
     enabled: bool = Field(default=True)
     host: str | None = None
-
-    @model_validator(mode="after")
-    def validate_type(self):
-        if (self.enabled):
-            if self.host is None:
-                raise ValueError(f"TLS spec must have a host when enabled")
-        return self
+    secret: str | TlsSecretSource | None = None
 
 class NginxConfig(BaseModel):
     proxy_body_size: str | None = None
@@ -364,10 +375,32 @@ class CharonConfig(BaseCharonConfig):
 class AppDefaultsCharon(BaseModel):
     overlays: dict[str, BaseCharonConfig] = Field(default_factory=lambda: {})
 
+class AppDefaultsTlsHost(BaseModel):
+    wildcard: bool | None = None
+
+class AppDefaultsTlsSecretSource(BaseModel):
+    mirror: str | None =  None
+    create: bool | None = None
+
+class AppDefaultsTlsSecretFromHost(BaseModel):
+    host: str
+    value: str | AppDefaultsTlsSecretSource
+
+class AppDefaultsTlsSecret(AppDefaultsTlsSecretSource):
+    from_host: list[AppDefaultsTlsSecretFromHost] | None = None
+
+class AppDefaultsTls(BaseModel):
+    host: str | AppDefaultsTlsHost | None = None
+    secret: str | AppDefaultsTlsSecret | None = None
+
+class AppDefaultsNetworking(BaseModel):
+    tls: AppDefaultsTls | None = None
+
 class AppDefaults(BaseModel):
     pvc: AppDefaultsPVC | None = None
     images: AppDefaultsImages = Field(default_factory=AppDefaultsImages)
     charon: AppDefaultsCharon = Field(default_factory=AppDefaultsCharon)
+    networking: AppDefaultsNetworking | None = None
 
 class AlloyLogsSpec(BaseModel):
     process: str | None = None

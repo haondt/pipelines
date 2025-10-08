@@ -83,11 +83,12 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         )
 
         if component.resources and component.resources.gpu.enabled:
-            if container.resources is None:
-                container.resources = client.V1ResourceRequirements()
-            if container.resources.limits is None:
-                container.resources.limits = {}
-            container.resources.limits[component.resources.gpu.resource_name] = 1
+            if component.resources.gpu.use_limit:
+                if container.resources is None:
+                    container.resources = client.V1ResourceRequirements()
+                if container.resources.limits is None:
+                    container.resources.limits = {}
+                container.resources.limits[component.resources.gpu.resource_name] = 1
 
             pod_template.spec.runtime_class_name = component.resources.gpu.runtime_class_name
 

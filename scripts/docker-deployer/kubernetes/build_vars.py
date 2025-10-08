@@ -10,7 +10,10 @@ from .create_manifests.models import PROJECT_SELECTOR_NAME
 COMPONENT_KEY = 'COM_HAONDT_COMPONENT'
 
 def load_yaml_and_unflatten(data: str):
-    return unflatten(yaml.safe_load(data), blacklist_re=[r".*\.metadata\..*", r".*\.environment\[\].raw\..*"])
+    return unflatten(yaml.safe_load(data), blacklist_re=[
+        r".*\.metadata\..*",
+        r".*\.environment\[\]\.raw\..*"
+    ])
 
 
 def build_app_yaml(project_config, project_dir_name, app_dir_name: str, base_env: Environment, app_base_yaml: str | None, component_base_yaml: str | None):
