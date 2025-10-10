@@ -1,4 +1,4 @@
-from pydantic import BaseModel, model_validator, Field
+from pydantic import BaseModel, DirectoryPath, model_validator, Field
 import uuid
 
 def make_uppercase(values, key):
@@ -194,11 +194,19 @@ class IPAddressConfig(BaseModel):
 
 class RatholeRouteConfig(BaseModel):
     port: str
-    host: str
+    host: str | None = None
+    direct: bool = Field(default=False)
     virtual_path: str | None = None
     virtual_dest: str | None = None
     max_body_size: str | None = None
     connection_timeout: str | None = None
+
+    @model_validator(mode="after")
+    def validate_type(self):
+        if not self.direct:
+            if self.host is None:
+                raise ValueError("host must be supplied when route is not direct") 
+        return self
 
 class NetworkingSpec(BaseModel):
     dependencies: list[NetworkingDependency] | None = None
