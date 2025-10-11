@@ -174,7 +174,7 @@ def create_ingress_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
                         client.V1NetworkPolicyIngressRule(
                             _from=[client.V1NetworkPolicyPeer(
                                 namespace_selector=client.V1LabelSelector(match_labels={
-                                    "app.kubernetes.io/name": "ingress-nginx"
+                                    "kubernetes.io/metadata.name": "ingress-nginx"
                                 })
                             )],
                             ports=[client.V1NetworkPolicyPort(
