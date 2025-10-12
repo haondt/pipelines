@@ -137,6 +137,22 @@ def create_startup_init_containers(args: ComponentManifestArguments, tasks: list
                 command=command,
                 volume_mounts=volume_mounts
             ))
+        elif task.custom is not None:
+            name = f'startup-custom-{generate_stable_id(task.custom)}'
+            container = client.V1Container(
+                name=name,
+                image=task.custom.image,
+                volume_mounts=volume_mounts
+            )
+            if isinstance(task.custom.command, str):
+                container.command = [task.custom.command]
+            else:
+                container.command = task.custom.command
+            if isinstance(task.custom.args, str) and len(task.custom.args) > 0:
+                container.args = [task.custom.args]
+            elif len(task.custom.args) > 0:
+                container.args = task.custom.args
+            containers.append(container)
         else:
             raise ValueError(f'Unsupported startup.task type {task}')
 

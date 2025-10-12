@@ -291,12 +291,18 @@ class GomplateStartupTask(BaseModel):
 class BusyBoxStartupTask(BaseModel):
     script: str
 
+class CustomImageStartupTask(BaseModel):
+    image: str
+    command: str | list[str]
+    args: str | list[str] = Field(default_factory=lambda: [])
+
 class StartupTask(BaseModel):
     chown: ChownStartupTask | None = None
     chmod: ChmodStartupTask | None = None
     chgrp: ChgrpStartupTask | None = None
     gomplate: GomplateStartupTask | None = None
     busybox: BusyBoxStartupTask | None = None
+    custom: CustomImageStartupTask | None = None
 
     @model_validator(mode="after")
     def validate_type(self):
@@ -305,7 +311,8 @@ class StartupTask(BaseModel):
             self.chmod,
             self.chgrp,
             self.gomplate,
-            self.busybox
+            self.busybox,
+            self.custom
         ] if i is not None]
 
         if len(selected) != 1:
