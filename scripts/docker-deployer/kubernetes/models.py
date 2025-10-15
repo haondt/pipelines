@@ -109,7 +109,6 @@ class VolumeSpec(BaseModel):
         return self.src.is_single()
 
 class EnvironmentSpec(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4().hex))
     secret: bool = Field(default=False)
 
     file: str | None = None

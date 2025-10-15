@@ -5,7 +5,7 @@ from .environment import create_environment_manifest
 from typing import Any
 from kubernetes import client
 import os
-from ..utils import coerce_dns_name
+from ..utils import coerce_dns_name, generate_stable_id
 from .service import get_service_name
 from .startup import create_startup_init_containers
 from .charon import create_charon_component_manifests
@@ -115,8 +115,8 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         
         # add env vars
         if component.environment:
-            for environment_spec in component.environment:
-                environment_manifest_name = f"{args.app_def.metadata.name}-{component_name}-environment-{environment_spec.id}"
+            for i, environment_spec in enumerate(component.environment):
+                environment_manifest_name = f"{args.app_def.metadata.name}-{component_name}-environment-{i}"
                 environment_manifest = create_environment_manifest(component_args, environment_manifest_name, environment_spec)
                 manifests.append(environment_manifest)
 
