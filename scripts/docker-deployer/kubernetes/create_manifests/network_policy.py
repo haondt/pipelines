@@ -4,7 +4,7 @@ from .environment import create_environment_manifest
 from typing import Any
 from kubernetes import client
 import os
-from ..utils import coerce_dns_name
+from ..utils import coerce_dns_name, generate_stable_id
 from .service import get_service_name
 from ..build_vars import get_app_namespace
 
@@ -54,7 +54,7 @@ def create_network_policy_manifests(args: ManifestArguments) -> list[dict[str, A
                 api_version="networking.k8s.io/v1",
                 kind="NetworkPolicy",
                 metadata=client.V1ObjectMeta(
-                    name=f"{args.app_def.metadata.name}-{component_name}-{net_dep.id}",
+                    name=f"{args.app_def.metadata.name}-{component_name}-{generate_stable_id(net_dep)}",
                     namespace=dep_namespace,
                     labels=component_labels,
                     annotations=component_annotations
