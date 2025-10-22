@@ -2,7 +2,7 @@ from .models import *
 from typing import Any
 from kubernetes import client
 
-def get_service_name(args: ManifestArguments, component_name: str, port_name: str):
+def get_service_name(args: ManifestArguments | ComponentManifestArguments, component_name: str, port_name: str):
     return f"{args.app_def.metadata.name}-{component_name}-{port_name}"
 
 def create_service_manifests(args: ManifestArguments) -> list[dict[str, Any]]:

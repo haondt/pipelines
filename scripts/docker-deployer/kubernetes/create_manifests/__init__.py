@@ -11,6 +11,7 @@ from .ingress import create_ingress_manifests
 from .ip_address import create_ip_address_manifests
 from .rathole import create_rathole_manifests
 from .charon import create_charon_app_manifests
+import json
 
 from typing import Any
 
@@ -36,5 +37,8 @@ def create_manifests(app_def: AppDefinition, app_env: Environment, compiled_file
     manifests += create_ingress_manifests(args)
     manifests += create_ip_address_manifests(args)
     manifests += create_rathole_manifests(args)
+
+    # deduplicate
+    manifests = list({json.dumps(d, sort_keys=True):d for d in manifests}.values())
 
     return manifests

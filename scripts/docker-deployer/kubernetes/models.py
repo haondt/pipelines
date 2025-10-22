@@ -421,8 +421,23 @@ class AlloyLogsSpec(BaseModel):
 class AlloyObservabilitySpec(BaseModel):
     logs: AlloyLogsSpec | None = None
 
+class ProbeHttpGetSpec(BaseModel):
+    port: str
+    path: str
+
+class ProbeAlloyBlackboxSpec(BaseModel):
+    pass
+
+class ProbeAlloySpec(BaseModel):
+    blackbox: ProbeAlloyBlackboxSpec | None = None
+
+class ProbeSpec(BaseModel):
+    http_get: ProbeHttpGetSpec | None = None
+    alloy: ProbeAlloySpec | None = None
+
 class ObservabilitySpec(BaseModel):
     alloy: AlloyObservabilitySpec | None = None
+    probes: dict[str, ProbeSpec] | None = None
 
 class Component(BaseModel):
     metadata: ComponentMetadata

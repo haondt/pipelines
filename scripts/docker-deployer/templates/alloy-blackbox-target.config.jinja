@@ -1,0 +1,15 @@
+target {
+    name = "{{ name }}"
+    address = "{{ address }}"
+    {% if module %}
+    module = "{{ module }}"
+    {% endif %}
+    labels = {
+        {% for k, v in labels.items() %}
+        "dev_haondt_app" = "plex",
+        "dev_haondt_component" = "primary",
+        "dev_haondt_namespace" = "deployments-plex",
+        "dev_haondt_probe" = "hc",
+        {% endfor %}
+    }
+}
