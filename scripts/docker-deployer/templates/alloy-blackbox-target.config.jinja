@@ -1,15 +1,12 @@
 target {
     name = "{{ name }}"
     address = "{{ address }}"
-    {% if module %}
+{%- if module %}
     module = "{{ module }}"
-    {% endif %}
+{%- endif %}
     labels = {
-        {% for k, v in labels.items() %}
-        "dev_haondt_app" = "plex",
-        "dev_haondt_component" = "primary",
-        "dev_haondt_namespace" = "deployments-plex",
-        "dev_haondt_probe" = "hc",
-        {% endfor %}
+{%- for k, v in labels.items() %}
+        "{{ k }}" = "{{ v }}",
+{%- endfor %}
     }
 }
