@@ -426,7 +426,7 @@ class ProbeHttpGetSpec(BaseModel):
     path: str
 
 class ProbeAlloyBlackboxSpec(BaseModel):
-    pass
+    labels: dict[str, str] | None = None
 
 class ProbeAlloySpec(BaseModel):
     blackbox: ProbeAlloyBlackboxSpec | None = None

@@ -46,16 +46,20 @@ def create_observability_manifests(args: ComponentManifestArguments, obs: Observ
             crd_name = coerce_dns_name(f'{args.app_def.metadata.name}-{args.component_name}-probe-{probe_name}')
             if probe.http_get:
                 if probe.alloy and probe.alloy.blackbox is not None:
+                    labels = {
+                        "dev_haondt_app": args.app_def.metadata.name,
+                        "dev_haondt_component": args.component_name,
+                        "dev_haondt_namespace": args.app_def.metadata.namespace,
+                        "dev_haondt_probe": probe_name
+                    }
+                    if probe.alloy.blackbox.labels:
+                        for k, v in probe.alloy.blackbox.labels.items():
+                            labels[k] = v
                     rendered_config += render_template('alloy-blackbox-target.config.jinja',
                         name= crd_name.replace('-', '_'),
                         module='http_2xx',
                         address= f'{get_service_name(args, args.component_name, probe.http_get.port)}.{args.app_def.metadata.namespace}.svc.cluster.local:8080{probe.http_get.path}',
-                        labels = {
-                            "dev_haondt_app": args.app_def.metadata.name,
-                            "dev_haondt_component": args.component_name,
-                            "dev_haondt_namespace": args.app_def.metadata.namespace,
-                            "dev_haondt_probe": probe_name
-                        }
+                        labels = labels
                     ) + "\n"
 
                     network_policy = client.V1NetworkPolicy(
