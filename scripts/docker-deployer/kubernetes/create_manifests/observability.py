@@ -29,7 +29,10 @@ def create_observability_manifests(args: ComponentManifestArguments, obs: Observ
             'kind': 'AlloyPartialConfig',
             'metadata': { 
                 'name': crd_name,
-                'namespace': args.app_def.metadata.namespace
+                'namespace': args.app_def.metadata.namespace,
+                'labels': {
+                    'deployment.haondt.dev/alloy-deployment': 'daemonset'
+                }
             },
             'spec': {
                 'config': rendered_config
@@ -91,7 +94,10 @@ def create_observability_manifests(args: ComponentManifestArguments, obs: Observ
                         'kind': 'AlloyPartialComponent',
                         'metadata': { 
                             'name': crd_name,
-                            'namespace': args.app_def.metadata.namespace
+                            'namespace': args.app_def.metadata.namespace,
+                            'labels': {
+                                'deployment.haondt.dev/alloy-deployment': 'deployment'
+                            }
                         },
                         'spec': {
                             'label': 'default',
