@@ -76,7 +76,7 @@ def create_observability_manifests(args: ComponentManifestArguments, obs: Observ
                                 client.V1NetworkPolicyIngressRule(
                                     _from=[client.V1NetworkPolicyPeer(
                                         namespace_selector=client.V1LabelSelector(match_labels={
-                                            "kubernetes.io/metadata.name": "alloy"
+                                            "kubernetes.io/metadata.name": "alloy-deployment"
                                         })
                                     )],
                                     ports=[client.V1NetworkPolicyPort(
