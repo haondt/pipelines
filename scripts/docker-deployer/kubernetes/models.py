@@ -226,6 +226,8 @@ class SecuritySpec(BaseModel):
     cap: SecurityCapSpec | None = None
     sysctls: list[str] | None = None
     groups: SecurityGroupsSpec | None = None
+    group: int | None = None
+    user: int | None = None
 
 class ChownStartupTask(BaseModel):
     path: str | None = None

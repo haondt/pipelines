@@ -178,12 +178,21 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                         value="1"
                     ))
 
+            def add_security_context(spec):
+                if spec.security_context is None:
+                    spec.security_context = client.V1PodSecurityContext()
+
             if security.groups:
-                if pod_template.spec.security_context is None:
-                    pod_template.spec.security_context = client.V1PodSecurityContext()
+                add_security_context(pod_template.spec)
                 if pod_template.spec.security_context.supplemental_groups is None:
                     pod_template.spec.security_context.supplemental_groups = []
                 pod_template.spec.security_context.supplemental_groups += security.groups.add # type: ignore
+            if security.group:
+                add_security_context(pod_template.spec)
+                pod_template.spec.security_context.run_as_group = security.group
+            if security.user:
+                add_security_context(pod_template.spec)
+                pod_template.spec.security_context.run_as_user = security.user
 
         # add startup
         if component.startup:
