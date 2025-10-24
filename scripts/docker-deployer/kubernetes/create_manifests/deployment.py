@@ -159,11 +159,14 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         # add security
         if component.security:
             security = component.security
+            def add_security_context(c):
+                if c.security_context is None:
+                    c.security_context = client.V1SecurityContext()
 
             # add capabilities
             if security.cap and security.cap.add:
-                if container.security_context is None:
-                    container.security_context = client.V1SecurityContext()
+                add_security_context(container)
+                assert container.security_context is not None
                 if container.security_context.capabilities is None:
                     container.security_context.capabilities = client.V1Capabilities()
                 if container.security_context.capabilities.add is None:
@@ -177,22 +180,22 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                         name=sysctl,
                         value="1"
                     ))
+            if security.user:
+                add_security_context(container)
+                assert container.security_context is not None
+                container.security_context.run_as_user = security.user
+            if security.group:
+                add_security_context(container)
+                assert container.security_context is not None
+                container.security_context.run_as_group = security.group
 
-            def add_security_context(spec):
-                if spec.security_context is None:
-                    spec.security_context = client.V1PodSecurityContext()
 
             if security.groups:
-                add_security_context(pod_template.spec)
+                if pod_template.spec.security_context is None:
+                    pod_template.spec.security_context = client.V1PodSecurityContext()
                 if pod_template.spec.security_context.supplemental_groups is None:
                     pod_template.spec.security_context.supplemental_groups = []
                 pod_template.spec.security_context.supplemental_groups += security.groups.add # type: ignore
-            if security.group:
-                add_security_context(pod_template.spec)
-                pod_template.spec.security_context.run_as_group = security.group
-            if security.user:
-                add_security_context(pod_template.spec)
-                pod_template.spec.security_context.run_as_user = security.user
 
         # add startup
         if component.startup:
