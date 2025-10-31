@@ -143,7 +143,8 @@ def create_charon_component_manifests(args: ComponentManifestArguments, configs:
         job_spec = client.V1JobSpec(
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(
-                    name=job_name
+                    name=job_name,
+                    labels=args.component_labels
                 ),
                 spec=client.V1PodSpec(
                     service_account_name=get_service_account_name(),
