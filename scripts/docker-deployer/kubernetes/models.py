@@ -350,6 +350,7 @@ class AppDefaultsImages(BaseModel):
     startup_tasks_chgrp: str = Field(default='busybox')
     startup_tasks_gomplate: str = Field(default='hairyhenderson/gomplate')
     charon_k8s_job: str = Field(default='haumea/charon-k8s-job')
+    gluetun: str = Field(default='ghcr.io/qdm12/gluetun')
 
 class SecretValueRef(BaseModel):
     namespace: str
@@ -441,6 +442,16 @@ class ObservabilitySpec(BaseModel):
     alloy: AlloyObservabilitySpec | None = None
     probes: dict[str, ProbeSpec] | None = None
 
+class GluetunWireguardConfig(BaseModel):
+    private_key: str
+
+class GluetunConfig(BaseModel):
+    wireguard: GluetunWireguardConfig | None = None
+    vpn_service_provider: str = Field(default='protonvpn')
+    server_countries: list[str] = Field(default=['Switzerland','Netherlands','Spain'])
+    port_forward_only: bool = True
+    dot: bool = False
+
 class Component(BaseModel):
     metadata: ComponentMetadata
 
@@ -454,6 +465,7 @@ class Component(BaseModel):
     startup: StartupSpec | None = None
     resources: Resources | None = None
     charon: list[CharonConfig] | None = None
+    gluetun: GluetunConfig | None = None
     observability: ObservabilitySpec | None = None
     
     # Custom fields that might be in your YAML

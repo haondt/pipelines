@@ -9,6 +9,7 @@ from ..utils import coerce_dns_name, generate_stable_id
 from .service import get_service_name
 from .startup import create_startup_init_containers
 from .charon import create_charon_component_manifests
+from .gluetun import create_gluetun_component_manifests
 from .observability import create_observability_manifests
 
 def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
@@ -210,6 +211,9 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
 
         if component.charon:
             manifests += create_charon_component_manifests(component_args, component.charon, deployment, pod_template.spec.volumes)
+
+        if component.gluetun:
+            manifests += create_gluetun_component_manifests(component_args, component.gluetun, deployment)
 
         if component.observability:
             manifests += create_observability_manifests(component_args, component.observability)

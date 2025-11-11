@@ -30,7 +30,8 @@ def create_manifests(app_def: AppDefinition, app_env: Environment, compiled_file
     )
     manifests = []
     manifests += create_deployment_manifests(args)
-    manifests += create_charon_app_manifests(args)
+    if any(c.charon for c in app_def.components.values()):
+        manifests += create_charon_app_manifests(args)
     manifests += create_namespace_manifests(args)
     manifests += create_service_manifests(args)
     manifests += create_network_policy_manifests(args)
