@@ -146,7 +146,9 @@ def create_charon_component_manifests(args: ComponentManifestArguments, configs:
                     name=job_name,
                     labels={
                         APP_SELECTOR_NAME: args.component_labels[APP_SELECTOR_NAME],
+                        'app.kubernetes.io/part-of': args.component_labels[APP_SELECTOR_NAME],
                         COMPONENT_SELECTOR_NAME: 'charon',
+                        'app.kubernetes.io/name': 'charon',
                         PROJECT_SELECTOR_NAME: args.component_labels[PROJECT_SELECTOR_NAME],
                         MANAGED_BY_NAME: args.component_labels[MANAGED_BY_NAME],
                         'charon.haondt.dev/source-component': args.component_name,
