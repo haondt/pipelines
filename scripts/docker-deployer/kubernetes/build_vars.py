@@ -5,7 +5,7 @@ from ..lib.hydration import hydrate_string
 from types import SimpleNamespace
 from datetime import datetime, timezone
 from .utils import load_file, load_existing_file
-from .create_manifests.models import PROJECT_SELECTOR_NAME
+from .create_manifests.models import MANAGED_BY_NAME, PROJECT_SELECTOR_NAME
 
 COMPONENT_KEY = 'COM_HAONDT_COMPONENT'
 
@@ -99,7 +99,7 @@ def get_static_default_app_yaml(project_name: str, app_name: str, app_env: Envir
             'namespace': get_app_namespace(project_name, app_name),
             'project': project_name,
             'labels': {
-                'deployment.haondt.dev/managed-by': 'haondt-docker-deployer',
+                MANAGED_BY_NAME: 'haondt-docker-deployer',
                 'app.kubernetes.io/managed-by': 'haondt-docker-deployer',
                 'app.kubernetes.io/part-of': app_name,
                 PROJECT_SELECTOR_NAME: project_name,

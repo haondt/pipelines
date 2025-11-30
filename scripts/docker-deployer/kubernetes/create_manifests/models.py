@@ -10,6 +10,8 @@ PROJECT_SELECTOR_NAME = 'deployment.haondt.dev/project'
 SERVICE_DEFAULT_PORT = 8080
 INGRESS_CLASS_NAME = 'nginx'
 
+MANAGED_BY_NAME = 'deployment.haondt.dev/managed-by'
+
 @dataclass
 class ManifestArguments:
     app_def: AppDefinition

@@ -144,7 +144,12 @@ def create_charon_component_manifests(args: ComponentManifestArguments, configs:
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(
                     name=job_name,
-                    labels=args.component_labels
+                    labels={
+                        APP_SELECTOR_NAME: args.component_labels[APP_SELECTOR_NAME],
+                        COMPONENT_SELECTOR_NAME: 'charon',
+                        PROJECT_SELECTOR_NAME: args.component_labels[PROJECT_SELECTOR_NAME],
+                        MANAGED_BY_NAME: args.component_labels[MANAGED_BY_NAME],
+                    }
                 ),
                 spec=client.V1PodSpec(
                     service_account_name=get_service_account_name(),
