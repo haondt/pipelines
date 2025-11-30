@@ -149,6 +149,8 @@ def create_charon_component_manifests(args: ComponentManifestArguments, configs:
                         COMPONENT_SELECTOR_NAME: 'charon',
                         PROJECT_SELECTOR_NAME: args.component_labels[PROJECT_SELECTOR_NAME],
                         MANAGED_BY_NAME: args.component_labels[MANAGED_BY_NAME],
+                        'charon.haondt.dev/source-component': args.component_name,
+                        'charon.haondt.dev/backup-job': backup_job_name
                     }
                 ),
                 spec=client.V1PodSpec(
