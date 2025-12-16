@@ -277,10 +277,6 @@ def create_charon_component_manifests(args: ComponentManifestArguments, config: 
             if backup_config.source.volumes:
                 raw_config = 'type: local\npaths:\n'
                 for k, v in backup_config.source.volumes.items():
-                    volume_hash = f'component-source-volume-{k}+{v}'
-                    if volume_hash in added_volumes:
-                        continue
-                    added_volumes.add(volume_hash)
 
                     base_path = f'/mnt/src/{make_config_map_key(k)}'
                     for sub_path in v:
@@ -293,11 +289,16 @@ def create_charon_component_manifests(args: ComponentManifestArguments, config: 
                             break
                     if component_volume == None:
                         raise ValueError(f'could not find volume {k} in component spec')
-                    job_spec.template.spec.volumes.append(copy.deepcopy(component_volume))
-                    job_spec.template.spec.containers[0].volume_mounts.append(client.V1VolumeMount(
-                        mount_path=base_path,
-                        name=k
-                    ))
+
+                    volume_hash = f'component-source-volume-{k}+{v}'
+                    if volume_hash not in added_volumes:
+                        added_volumes.add(volume_hash)
+
+                        job_spec.template.spec.volumes.append(copy.deepcopy(component_volume))
+                        job_spec.template.spec.containers[0].volume_mounts.append(client.V1VolumeMount(
+                            mount_path=base_path,
+                            name=k
+                        ))
 
                 item = {'raw':raw_config}
 
