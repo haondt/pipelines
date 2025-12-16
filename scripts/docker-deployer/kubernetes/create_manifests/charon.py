@@ -196,7 +196,7 @@ def create_charon_component_manifests(args: ComponentManifestArguments, config: 
         backup_config_object = deep_merge(backup_config_object, backup_config.model_dump(mode='json'), overwrite_with_none=False)
         backup_config = CharonBackupConfig.model_validate(backup_config_object)
 
-        backup = { 'repositoryConfigs': [] }
+        backup: dict[Any, Any] = { 'repositoryConfigs': [] }
 
         if backup_config.repository_configs:
             for repository_config in backup_config.repository_configs:
@@ -312,10 +312,9 @@ def create_charon_component_manifests(args: ComponentManifestArguments, config: 
                      )
                 )
 
-
             else:
                 raise ValueError(f'Couldn\'t interpret source config {backup_config.source}')
-            backup_job['spec']['sourceConfig'] = item
+            backup['sourceConfig'] = item
 
         
         if config.scale_down_deployment:
