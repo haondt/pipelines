@@ -377,19 +377,29 @@ class CharonVolume(BaseModel):
 class CharonSource(BaseModel):
     volumes: dict[str, list[str]] | None = None
 
-class BaseCharonConfig(BaseModel):
-    schedule: str | None = None
-    name: str | None = None
+
+class BaseCharonBackupConfig(BaseModel):
     repository_configs: list[CharonRepositoryConfig] | None = None
     volumes: list[CharonVolume] | None = None
     source: CharonSource | None = None 
+
+class BaseCharonConfig(BaseModel):
+    name: str | None = None
+    schedule: str | None = None
     scale_down_deployment: bool | None = None
+
+class CharonBackupConfig(BaseCharonBackupConfig):
+    overlays: list[str] = Field(default_factory=lambda: [])
 
 class CharonConfig(BaseCharonConfig):
     overlays: list[str] = Field(default_factory=lambda: [])
+    backups: list[CharonBackupConfig] = Field(default_factory=lambda: [])
 
 class AppDefaultsCharon(BaseModel):
     overlays: dict[str, BaseCharonConfig] = Field(default_factory=lambda: {})
+    backup_overlays: dict[str, BaseCharonBackupConfig] = Field(default_factory=lambda: {})
+    scale_down_deployment: bool | None = None
+    name: str | None = None
 
 class AppDefaultsTlsHost(BaseModel):
     wildcard: bool | None = None
@@ -464,7 +474,7 @@ class Component(BaseModel):
     security: SecuritySpec | None = None
     startup: StartupSpec | None = None
     resources: Resources | None = None
-    charon: list[CharonConfig] | None = None
+    charon: CharonConfig | None = None
     gluetun: GluetunConfig | None = None
     observability: ObservabilitySpec | None = None
     

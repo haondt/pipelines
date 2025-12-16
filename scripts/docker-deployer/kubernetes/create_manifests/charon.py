@@ -108,83 +108,98 @@ def create_charon_app_manifests(args: ManifestArguments) -> list[dict[str, Any]]
 
     return manifests
 
-def create_charon_component_manifests(args: ComponentManifestArguments, configs: list[CharonConfig], deployment: client.V1Deployment, component_volumes: list[client.V1Volume]) -> list[dict[str, Any]]:
+def create_charon_component_manifests(args: ComponentManifestArguments, config: CharonConfig, deployment: client.V1Deployment, component_volumes: list[client.V1Volume]) -> list[dict[str, Any]]:
     assert deployment.metadata is not None
     assert deployment.spec is not None
 
     manifests = []
 
     base_overlays = {k: v.model_dump(mode='json') for k, v in args.app_def.defaults.charon.overlays.items()}
+    base_backup_overlays = {k: v.model_dump(mode='json') for k, v in args.app_def.defaults.charon.backup_overlays.items()}
 
-    for config in configs:
-        config_obj = {}
-        for overlay_name in config.overlays:
-            overlay = base_overlays[overlay_name]
-            config_obj = deep_merge(config_obj, overlay, overwrite_with_none=False)
-        config_obj = deep_merge(config_obj, config.model_dump(mode='json'), overwrite_with_none=False)
-        config = CharonConfig.model_validate(config_obj)
+    config_obj = {}
+    if args.app_def.defaults.charon.scale_down_deployment is not None:
+        config_obj['scale_down_deployment'] = args.app_def.defaults.charon.scale_down_deployment
+    if args.app_def.defaults.charon.name is not None:
+        config_obj['name'] = args.app_def.defaults.charon.name
 
-        assert config.name is not None
-        backup_job_name = f'{args.component_name}-{config.name}-{generate_stable_id(config)}'
-        job_name = f'charon-{backup_job_name}'
+    for overlay_name in config.overlays:
+        overlay = base_overlays[overlay_name]
+        config_obj = deep_merge(config_obj, overlay, overwrite_with_none=False)
+    config_obj = deep_merge(config_obj, config.model_dump(mode='json'), overwrite_with_none=False)
+    config = CharonConfig.model_validate(config_obj)
 
-        backup_job = {
-            'apiVersion': 'charon.haondt.dev/v1',
-            'kind': 'BackupJob',
-            'metadata': {
-                "name": backup_job_name,
-                "namespace": args.app_def.metadata.namespace
-            },
-            'spec': {
-                'name': config.name,
-                'repositoryConfigs': []
-            }
+    backup_job_name = f'{args.component_name}-{generate_stable_id(config)}'
+    job_name = f'charon-{backup_job_name}'
+
+    backup_job = {
+        'apiVersion': 'charon.haondt.dev/v1',
+        'kind': 'BackupJob',
+        'metadata': {
+            "name": backup_job_name,
+            "namespace": args.app_def.metadata.namespace
+        },
+        'spec': {
+            'name': config.name,
+            'backups': []
         }
-        job_spec = client.V1JobSpec(
-            template=client.V1PodTemplateSpec(
-                metadata=client.V1ObjectMeta(
-                    name=job_name,
-                    labels={
-                        APP_SELECTOR_NAME: args.component_labels[APP_SELECTOR_NAME],
-                        'app.kubernetes.io/part-of': args.component_labels[APP_SELECTOR_NAME],
-                        COMPONENT_SELECTOR_NAME: 'charon',
-                        'app.kubernetes.io/name': 'charon',
-                        PROJECT_SELECTOR_NAME: args.component_labels[PROJECT_SELECTOR_NAME],
-                        MANAGED_BY_NAME: args.component_labels[MANAGED_BY_NAME],
-                        'charon.haondt.dev/source-component': args.component_name,
-                        'charon.haondt.dev/backup-job': backup_job_name
-                    }
-                ),
-                spec=client.V1PodSpec(
-                    service_account_name=get_service_account_name(),
-                    restart_policy='OnFailure',
-                    volumes=[],
-                    containers=[client.V1Container(
-                        name='primary',
-                        image=args.app_def.defaults.images.charon_k8s_job,
-                        volume_mounts=[],
-                        env=[
-                            client.V1EnvVar(
-                                name='CHARON_BACKUPJOB_NAME',
-                                value=backup_job_name
-                            ),
-                            client.V1EnvVar(
-                                name='CHARON_BACKUPJOB_NAMESPACE',
-                                value=args.app_def.metadata.namespace
-                            ),
-                            client.V1EnvVar(
-                                name='CHARON_BACKUPJOB_MODE',
-                                value='backup'
-                            )
-                        ]
-                    )]
-                )
+    }
+    job_spec = client.V1JobSpec(
+        template=client.V1PodTemplateSpec(
+            metadata=client.V1ObjectMeta(
+                name=job_name,
+                labels={
+                    APP_SELECTOR_NAME: args.component_labels[APP_SELECTOR_NAME],
+                    'app.kubernetes.io/part-of': args.component_labels[APP_SELECTOR_NAME],
+                    COMPONENT_SELECTOR_NAME: 'charon',
+                    'app.kubernetes.io/name': 'charon',
+                    PROJECT_SELECTOR_NAME: args.component_labels[PROJECT_SELECTOR_NAME],
+                    MANAGED_BY_NAME: args.component_labels[MANAGED_BY_NAME],
+                    'charon.haondt.dev/source-component': args.component_name,
+                    'charon.haondt.dev/backup-job': backup_job_name
+                }
+            ),
+            spec=client.V1PodSpec(
+                service_account_name=get_service_account_name(),
+                restart_policy='OnFailure',
+                volumes=[],
+                containers=[client.V1Container(
+                    name='primary',
+                    image=args.app_def.defaults.images.charon_k8s_job,
+                    volume_mounts=[],
+                    env=[
+                        client.V1EnvVar(
+                            name='CHARON_BACKUPJOB_NAME',
+                            value=backup_job_name
+                        ),
+                        client.V1EnvVar(
+                            name='CHARON_BACKUPJOB_NAMESPACE',
+                            value=args.app_def.metadata.namespace
+                        ),
+                        client.V1EnvVar(
+                            name='CHARON_BACKUPJOB_MODE',
+                            value='backup'
+                        )
+                    ]
+                )]
             )
         )
-        assert job_spec.template is not None and job_spec.template.spec is not None and job_spec.template.spec.containers is not None and job_spec.template.spec.volumes is not None
+    )
+    assert job_spec.template is not None and job_spec.template.spec is not None and job_spec.template.spec.containers is not None and job_spec.template.spec.volumes is not None
 
-        if config.repository_configs:
-            for repository_config in config.repository_configs:
+    added_volumes = set()
+    for backup_config in config.backups:
+        backup_config_object = {}
+        for overlay_name in backup_config.overlays:
+            overlay = base_backup_overlays[overlay_name]
+            backup_config_object = deep_merge(backup_config_object, overlay, overwrite_with_none=False)
+        backup_config_object = deep_merge(backup_config_object, backup_config.model_dump(mode='json'), overwrite_with_none=False)
+        backup_config = CharonBackupConfig.model_validate(backup_config_object)
+
+        backup = { 'repositoryConfigs': [] }
+
+        if backup_config.repository_configs:
+            for repository_config in backup_config.repository_configs:
                 if repository_config.config_map:
                     item = {
                         'configMap': {
@@ -206,10 +221,15 @@ def create_charon_component_manifests(args: ComponentManifestArguments, configs:
                 else:
                     raise ValueError(f'Couldn\'t interpret repository config {repository_config}')
 
-                backup_job['spec']['repositoryConfigs'].append(item)
+                backup['repositoryConfigs'].append(item)
 
-        if config.volumes:
-            for config_volume in config.volumes:
+        if backup_config.volumes:
+            for config_volume in backup_config.volumes:
+                volume_hash = generate_stable_id(config_volume, 64)
+                if volume_hash in added_volumes:
+                    continue
+                added_volumes.add(volume_hash)
+
                 if config_volume.secret:
                     volume_name = coerce_dns_name(f'{config_volume.secret.name}-{config_volume.secret.key}-{generate_stable_id(config_volume.secret)}')
                     local_secret_name=f'{config_volume.secret.namespace}-{config_volume.secret.name}-mirror'
@@ -253,10 +273,15 @@ def create_charon_component_manifests(args: ComponentManifestArguments, configs:
                 else:
                     raise ValueError(f'Couldn\'t interpret volume config {config_volume}')
 
-        if config.source:
-            if config.source.volumes:
+        if backup_config.source:
+            if backup_config.source.volumes:
                 raw_config = 'type: local\npaths:\n'
-                for k, v in config.source.volumes.items():
+                for k, v in backup_config.source.volumes.items():
+                    volume_hash = f'component-source-volume-{k}+{v}'
+                    if volume_hash in added_volumes:
+                        continue
+                    added_volumes.add(volume_hash)
+
                     base_path = f'/mnt/src/{make_config_map_key(k)}'
                     for sub_path in v:
                         raw_config += f'  - {base_path}{sub_path}\n'
@@ -289,48 +314,51 @@ def create_charon_component_manifests(args: ComponentManifestArguments, configs:
 
 
             else:
-                raise ValueError(f'Couldn\'t interpret source config {config.source}')
+                raise ValueError(f'Couldn\'t interpret source config {backup_config.source}')
             backup_job['spec']['sourceConfig'] = item
 
+        
         if config.scale_down_deployment:
-            backup_job['spec']['scale_down_deployments'] = [{
+            backup_job['spec']['scaleDownDeployments'] = [{
                 'name': deployment.metadata.name,
                 'namespace': deployment.metadata.namespace
             }]
 
-        if config.schedule:
-            cron_job = client.V1CronJob(
-                api_version='batch/v1',
-                kind='CronJob',
-                metadata=client.V1ObjectMeta(
-                    name=job_name,
-                    namespace=deployment.metadata.namespace
-                ),
-                spec=client.V1CronJobSpec(
-                    schedule=config.schedule,
-                    concurrency_policy='Forbid',
-                    successful_jobs_history_limit=3,
-                    failed_jobs_history_limit=1,
-                    job_template=client.V1JobTemplateSpec(spec=job_spec)
-                )
+        backup_job['spec']['backups'].append(backup)
+
+    if config.schedule:
+        cron_job = client.V1CronJob(
+            api_version='batch/v1',
+            kind='CronJob',
+            metadata=client.V1ObjectMeta(
+                name=job_name,
+                namespace=deployment.metadata.namespace
+            ),
+            spec=client.V1CronJobSpec(
+                schedule=config.schedule,
+                concurrency_policy='Forbid',
+                successful_jobs_history_limit=3,
+                failed_jobs_history_limit=1,
+                job_template=client.V1JobTemplateSpec(spec=job_spec)
             )
-            manifests.append(_api_client.sanitize_for_serialization(cron_job))
-        else:
-            job_spec.ttl_seconds_after_finished = 3600
-            job = client.V1Job(
-                api_version='batch/v1',
-                kind='Job',
-                metadata=client.V1ObjectMeta(
-                    name=job_name,
-                    namespace=deployment.metadata.namespace
-                ),
-                spec=job_spec
-            )
-            manifests.append(_api_client.sanitize_for_serialization(job))
+        )
+        manifests.append(_api_client.sanitize_for_serialization(cron_job))
+    else:
+        job_spec.ttl_seconds_after_finished = 3600
+        job = client.V1Job(
+            api_version='batch/v1',
+            kind='Job',
+            metadata=client.V1ObjectMeta(
+                name=job_name,
+                namespace=deployment.metadata.namespace
+            ),
+            spec=job_spec
+        )
+        manifests.append(_api_client.sanitize_for_serialization(job))
 
 
-        # manifests.append(config.model_dump(mode='json'))
-        manifests.append(backup_job)
+    # manifests.append(config.model_dump(mode='json'))
+    manifests.append(backup_job)
 
     return manifests
 
