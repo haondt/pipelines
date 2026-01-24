@@ -11,6 +11,7 @@ from .ingress import create_ingress_manifests
 from .ip_address import create_ip_address_manifests
 from .rathole import create_rathole_manifests
 from .charon import create_charon_app_manifests
+from .gateway import create_gateway_manifests
 import json
 
 from typing import Any
@@ -36,6 +37,7 @@ def create_manifests(app_def: AppDefinition, app_env: Environment, compiled_file
     manifests += create_service_manifests(args)
     manifests += create_network_policy_manifests(args)
     manifests += create_ingress_manifests(args)
+    manifests += create_gateway_manifests(args)
     manifests += create_ip_address_manifests(args)
     manifests += create_rathole_manifests(args)
 

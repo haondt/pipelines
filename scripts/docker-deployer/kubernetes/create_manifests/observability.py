@@ -6,7 +6,7 @@ from typing import Any
 from kubernetes import client
 from .service import get_service_name
 
-def create_observability_manifests(args: ComponentManifestArguments, obs: ObservabilitySpec) -> list[dict[str, Any]]:
+def create_observability_manifests(args: ComponentManifestArguments, obs: ObservabilitySpec, networking: NetworkingSpec | None) -> list[dict[str, Any]]:
     manifests = []
 
     if obs.alloy and obs.alloy.logs:
@@ -55,10 +55,14 @@ def create_observability_manifests(args: ComponentManifestArguments, obs: Observ
                     if probe.alloy.blackbox.labels:
                         for k, v in probe.alloy.blackbox.labels.items():
                             labels[k] = v
+
+                    assert networking is not None
+                    service_port = networking.get_port_number(probe.http_get.port)
+
                     rendered_config += render_template('alloy-blackbox-target.config.jinja',
                         name= crd_name.replace('-', '_'),
                         module='http_2xx',
-                        address= f'{get_service_name(args, args.component_name, probe.http_get.port)}.{args.app_def.metadata.namespace}.svc.cluster.local:8080{probe.http_get.path}',
+                        address= f'{get_service_name(args, args.component_name)}.{args.app_def.metadata.namespace}.svc.cluster.local:{service_port}{probe.http_get.path}',
                         labels = labels
                     ) + "\n"
 

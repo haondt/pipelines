@@ -6,7 +6,6 @@ from typing import Any
 from kubernetes import client
 import os
 from ..utils import coerce_dns_name, generate_stable_id
-from .service import get_service_name
 from .startup import create_startup_init_containers
 from .charon import create_charon_component_manifests
 from .gluetun import create_gluetun_component_manifests
@@ -216,7 +215,7 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
             manifests += create_gluetun_component_manifests(component_args, component.gluetun, deployment)
 
         if component.observability:
-            manifests += create_observability_manifests(component_args, component.observability)
+            manifests += create_observability_manifests(component_args, component.observability, component.networking)
 
         manifests.append(client.ApiClient().sanitize_for_serialization(deployment))
 

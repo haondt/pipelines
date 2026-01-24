@@ -4,10 +4,11 @@ from kubernetes import client
 import os
 from ..utils import coerce_dns_name, hash_str
 
-def get_ip_address_service_name(args: ManifestArguments, component_name: str, ip_address: str, port_names: list[str]):
-    return f"{args.app_def.metadata.name}-{component_name}-ip-{hash_str(ip_address, 6)}-{'-'.join(port_names)}"
-def get_ip_address_network_policy_name(args: ManifestArguments, component_name: str, ip_address: str, port_names: list[str]):
-    return f"{args.app_def.metadata.name}-{component_name}-ingress-ip-{hash_str(ip_address, 6)}-{'-'.join(port_names)}"
+def get_ip_address_service_name(args: ManifestArguments, component_name: str, ip_address: str):
+    return f"{args.app_def.metadata.name}-{component_name}-ip-{hash_str(ip_address, 6)}"
+
+def get_ip_address_network_policy_name(args: ManifestArguments, component_name: str, ip_address: str):
+    return f"{args.app_def.metadata.name}-{component_name}-ingress-ip-{hash_str(ip_address, 6)}"
 
 def create_ip_address_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
@@ -23,19 +24,15 @@ def create_ip_address_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         for ip_address_spec in networking.ip_addresses:
             service_ports: list[client.V1ServicePort] = []
             network_policy_ports: list[client.V1NetworkPolicyPort] = []
-            default_port = SERVICE_DEFAULT_PORT
-            default_protocol = 'TCP'
+            default_protocol = NETWORKING_DEFAULT_PROTOCOL
             for port in ip_address_spec.ports:
-                port_port = default_port
-                port_protocol = default_protocol
-                if networking.ports is not None \
-                    and port in networking.ports:
-                    networking_port = networking.ports[port]
-                    if isinstance(networking_port, int):
-                        port_port = networking_port
-                    else:
-                        port_port = networking_port.port
-                        port_protocol = networking_port.protocol
+                port_spec = networking.ports[port]
+                if isinstance(port_spec, int):
+                    port_port = port_spec
+                    port_protocol = default_protocol
+                else:
+                    port_port = port_spec.port
+                    port_protocol = port_spec.protocol
 
                 service_ports.append(client.V1ServicePort(
                     protocol=port_protocol,
@@ -52,7 +49,7 @@ def create_ip_address_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                 api_version= "v1",
                 kind="Service",
                 metadata=client.V1ObjectMeta(
-                    name=get_ip_address_service_name(args, component_name, ip_address_spec.ip, ip_address_spec.ports),
+                    name=get_ip_address_service_name(args, component_name, ip_address_spec.ip),
                     namespace=args.app_def.metadata.namespace,
                     labels=component_labels,
                     annotations=component_annotations | {
@@ -75,7 +72,7 @@ def create_ip_address_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                 api_version="networking.k8s.io/v1",
                 kind="NetworkPolicy",
                 metadata=client.V1ObjectMeta(
-                    name=get_ip_address_network_policy_name(args, component_name, ip_address_spec.ip, ip_address_spec.ports),
+                    name=get_ip_address_network_policy_name(args, component_name, ip_address_spec.ip),
                     namespace=args.app_def.metadata.namespace,
                     labels=component_labels,
                     annotations=component_annotations

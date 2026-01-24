@@ -50,9 +50,9 @@ def create_ingress_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
                                 path_type="Prefix",
                                 backend=client.V1IngressBackend(
                                     service=client.V1IngressServiceBackend(
-                                        name=get_service_name(args, component_name, ingress_spec.port),
+                                        name=get_service_name(args, component_name),
                                         port=client.V1ServiceBackendPort(
-                                            number=SERVICE_DEFAULT_PORT
+                                            number=networking.get_port_number(ingress_spec.port)
                                         )
                                     )
                                 )

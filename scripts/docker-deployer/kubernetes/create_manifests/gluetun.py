@@ -9,7 +9,6 @@ import copy
 import os
 from ..utils import coerce_dns_name, generate_stable_id, hash_str, make_config_map_key
 from ...lib.yaml_tools import deep_merge
-from .service import get_service_name
 from .startup import create_startup_init_containers
 _api_client = client.ApiClient()
 

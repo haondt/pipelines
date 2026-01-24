@@ -7,8 +7,9 @@ APP_SELECTOR_NAME = 'deployment.haondt.dev/part-of'
 NAMESPACE_SELECTOR_NAME = 'deployment.haondt.dev/name'
 COMPONENT_SELECTOR_NAME = 'deployment.haondt.dev/name'
 PROJECT_SELECTOR_NAME = 'deployment.haondt.dev/project'
-SERVICE_DEFAULT_PORT = 8080
 INGRESS_CLASS_NAME = 'nginx'
+
+NETWORKING_DEFAULT_PROTOCOL = 'TCP'
 
 MANAGED_BY_NAME = 'deployment.haondt.dev/managed-by'
 

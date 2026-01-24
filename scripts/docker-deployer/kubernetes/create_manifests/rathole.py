@@ -36,8 +36,8 @@ def create_rathole_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
                     "spec": {
                         "virtualHost": rathole_route_spec.host,
                         "service": {
-                            "host": f'{get_service_name(args, component_name, rathole_route_spec.port)}.{args.app_def.metadata.namespace}.svc.cluster.local',
-                            "port": SERVICE_DEFAULT_PORT
+                            "host": f'{get_service_name(args, component_name)}.{args.app_def.metadata.namespace}.svc.cluster.local',
+                            "port": networking.get_port_number(rathole_route_spec.port)
                         }
                     }
                 }

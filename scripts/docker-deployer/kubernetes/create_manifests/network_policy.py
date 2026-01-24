@@ -5,7 +5,6 @@ from typing import Any
 from kubernetes import client
 import os
 from ..utils import coerce_dns_name, generate_stable_id
-from .service import get_service_name
 from ..build_vars import get_app_namespace
 
 def create_network_policy_manifests(args: ManifestArguments) -> list[dict[str, Any]]:

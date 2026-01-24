@@ -164,6 +164,28 @@ class IngressConfig(BaseModel):
         make_uppercase(values, 'protocol')
         return values
 
+class HttpRouteConfig(BaseModel):
+    host: str | None = None
+    hosts: list[str] | None = None
+    port: str
+    protocol: str = Field(default='TCP')
+
+    @model_validator(mode="before")
+    @classmethod
+    def preprocess(cls, values):
+        make_uppercase(values, 'protocol')
+        return values
+
+    @model_validator(mode="after")
+    def validate_type(self):
+        if self.host is None:
+            if self.hosts is None or len(self.hosts) == 0:
+                raise ValueError(f"At least one host must be given")
+        return self
+
+class GatewayConfig(BaseModel):
+    http_routes: list[HttpRouteConfig] = Field(default_factory=list)
+
 class NetworkingDependency(BaseModel):
     name: str
     port: str | int
@@ -209,9 +231,16 @@ class RatholeRouteConfig(BaseModel):
 class NetworkingSpec(BaseModel):
     dependencies: list[NetworkingDependency] | None = None
     ingresses: list[IngressConfig] | None = None
+    gateway: GatewayConfig | None = None
     rathole_routes: list[RatholeRouteConfig] | None = None
     ip_addresses: list[IPAddressConfig] | None = None
-    ports: dict[str, int | PortConfig] | None = None
+    ports: dict[str, int | PortConfig] = Field(default_factory=dict)
+
+    def get_port_number(self, port_name: str) -> int:
+        port = self.ports[port_name]
+        if isinstance(port, int):
+            return port
+        return port.port
 
 class ComponentNetworking(BaseModel):
     ingress: IngressConfig | None = None
@@ -286,7 +315,7 @@ class GomplateStartupTask(BaseModel):
     input: GomplateInput
     output: GomplateOutput
     extra_args: list[str] | None = None
-    data_sources: dict[str, str] = Field(default_factory=lambda: {})
+    data_sources: dict[str, str] = Field(default_factory=dict)
 
 class BusyBoxStartupTask(BaseModel):
     script: str
@@ -294,7 +323,7 @@ class BusyBoxStartupTask(BaseModel):
 class CustomImageStartupTask(BaseModel):
     image: str
     command: str | list[str]
-    args: str | list[str] = Field(default_factory=lambda: [])
+    args: str | list[str] = Field(default_factory=list)
 
 class StartupTask(BaseModel):
     chown: ChownStartupTask | None = None
@@ -389,15 +418,15 @@ class BaseCharonConfig(BaseModel):
     scale_down_deployment: bool | None = None
 
 class CharonBackupConfig(BaseCharonBackupConfig):
-    overlays: list[str] = Field(default_factory=lambda: [])
+    overlays: list[str] = Field(default_factory=list)
 
 class CharonConfig(BaseCharonConfig):
-    overlays: list[str] = Field(default_factory=lambda: [])
-    backups: list[CharonBackupConfig] = Field(default_factory=lambda: [])
+    overlays: list[str] = Field(default_factory=list)
+    backups: list[CharonBackupConfig] = Field(default_factory=list)
 
 class AppDefaultsCharon(BaseModel):
-    overlays: dict[str, BaseCharonConfig] = Field(default_factory=lambda: {})
-    backup_overlays: dict[str, BaseCharonBackupConfig] = Field(default_factory=lambda: {})
+    overlays: dict[str, BaseCharonConfig] = Field(default_factory=dict)
+    backup_overlays: dict[str, BaseCharonBackupConfig] = Field(default_factory=dict)
     scale_down_deployment: bool | None = None
     name: str | None = None
 
@@ -419,14 +448,20 @@ class AppDefaultsTls(BaseModel):
     host: str | AppDefaultsTlsHost | None = None
     secret: str | AppDefaultsTlsSecret | None = None
 
+class AppDefaultsGateway(BaseModel):
+    name: str = Field(default='haondt-default')
+    namespace: str = Field(default='kgateway-system')
+
+
 class AppDefaultsNetworking(BaseModel):
     tls: AppDefaultsTls | None = None
+    gateway: AppDefaultsGateway = Field(default_factory=AppDefaultsGateway)
 
 class AppDefaults(BaseModel):
     pvc: AppDefaultsPVC | None = None
     images: AppDefaultsImages = Field(default_factory=AppDefaultsImages)
     charon: AppDefaultsCharon = Field(default_factory=AppDefaultsCharon)
-    networking: AppDefaultsNetworking | None = None
+    networking: AppDefaultsNetworking = Field(default_factory=AppDefaultsNetworking)
 
 class AlloyLogsSpec(BaseModel):
     process: str | None = None
