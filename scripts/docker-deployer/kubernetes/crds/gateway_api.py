@@ -31,7 +31,7 @@ class ParentReference(CamelModel):
 
 # this class is incomplete
 class HttpBackendRef(CamelModel):
-    group: str = Field(default="gateway.networking.k8s.io")
+    group: str | None = None
     kind: str = Field(default="Service")
     namespace: str | None = None
     name: str
