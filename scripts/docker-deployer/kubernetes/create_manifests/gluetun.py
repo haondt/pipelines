@@ -13,7 +13,7 @@ from .startup import create_startup_init_containers
 _api_client = client.ApiClient()
 
 
-def create_gluetun_component_manifests(args: ComponentManifestArguments, config: GluetunConfig, deployment: client.V1Deployment) -> list[dict[str, Any]]:
+def create_gluetun_component_manifests(args: ComponentManifestArguments, networking: NetworkingSpec, config: GluetunConfig, deployment: client.V1Deployment) -> list[dict[str, Any]]:
     assert deployment.metadata is not None
     assert deployment.spec is not None
     assert deployment.spec.template is not None
@@ -52,8 +52,8 @@ def create_gluetun_component_manifests(args: ComponentManifestArguments, config:
     else:
         raise ValueError(f'Error while configuring component {args.component_name}: only wireguard is supported for gluetun vpn type')
 
-    config_map_env['VPN_SERVICE_PROVIDER'] = config.vpn_service_provider
-    if config.vpn_service_provider == 'protonvpn':
+    if config.protonvpn is not None:
+        config_map_env['VPN_SERVICE_PROVIDER'] = 'protonvpn'
         if config.port_forwarding is not None:
             config_map_env['PORT_FORWARD_ONLY'] = 'on'
         config_map_env['FREE_ONLY'] = 'on' if config.protonvpn.free else 'off'
@@ -70,7 +70,9 @@ def create_gluetun_component_manifests(args: ComponentManifestArguments, config:
     if config.dns is not None:
         if config.dns.upstream_resolvers is not None and len(config.dns.upstream_resolvers) > 0:
             config_map_env['DNS_UPSTREAM_RESOLVERS'] = ','.join(config.dns.upstream_resolvers)
-            
+    if config.firewall is not None:
+        if config.firewall.input_ports:
+            config_map_env['FIREWALL_INPUT_PORTS'] = ','.join([str(networking.get_port_number(i)) for i in config.firewall.input_ports])
 
     env_secret_or_config_map_name = f'{args.app_def.metadata.name}-{args.component_name}-gluetun-environment'
     env_secret = client.V1Secret(

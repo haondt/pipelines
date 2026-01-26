@@ -244,12 +244,15 @@ class ProtonVpnConfig(BaseModel):
     free: bool = False
     server_countries: list[str] = Field(default=['Switzerland','Netherlands','Spain'])
 
+class GluetunFirewallConfig(BaseModel):
+    input_ports: list[str] | None = None
+
 class GluetunConfig(BaseModel):
     wireguard: GluetunWireguardConfig | None = None
-    protonvpn: ProtonVpnConfig = Field(default_factory=ProtonVpnConfig)
-    vpn_service_provider: str = Field(default='protonvpn')
+    protonvpn: ProtonVpnConfig | None = None
     port_forwarding: GluetunPortForwardingConfig | None = None
     dns: GluetunDnsConfig | None = None
+    firewall: GluetunFirewallConfig | None = None
 
 class NetworkingSpec(BaseModel):
     dependencies: list[NetworkingDependency] | None = None

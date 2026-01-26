@@ -157,7 +157,7 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                     ))
             # gluetun
             if component.networking.gluetun:
-                manifests += create_gluetun_component_manifests(component_args, component.networking.gluetun, deployment)
+                manifests += create_gluetun_component_manifests(component_args, component.networking, component.networking.gluetun, deployment)
 
         # add security
         if component.security:
