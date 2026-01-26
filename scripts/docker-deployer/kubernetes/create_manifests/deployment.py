@@ -155,6 +155,9 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                         name=port_name,
                         protocol=port_protocol
                     ))
+            # gluetun
+            if component.networking.gluetun:
+                manifests += create_gluetun_component_manifests(component_args, component.networking.gluetun, deployment)
 
         # add security
         if component.security:
@@ -211,8 +214,6 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         if component.charon:
             manifests += create_charon_component_manifests(component_args, component.charon, deployment, pod_template.spec.volumes)
 
-        if component.gluetun:
-            manifests += create_gluetun_component_manifests(component_args, component.gluetun, deployment)
 
         if component.observability:
             manifests += create_observability_manifests(component_args, component.observability, component.networking)

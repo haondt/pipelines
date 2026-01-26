@@ -47,12 +47,30 @@ def create_gluetun_component_manifests(args: ComponentManifestArguments, config:
     if config.wireguard:
         secret_env['WIREGUARD_PRIVATE_KEY'] = config.wireguard.private_key
         config_map_env['VPN_TYPE'] = 'wireguard'
+        if config.wireguard.mtu is not None:
+            config_map_env['WIREGUARD_MTU'] = config.wireguard.mtu
     else:
         raise ValueError(f'Error while configuring component {args.component_name}: only wireguard is supported for gluetun vpn type')
+
     config_map_env['VPN_SERVICE_PROVIDER'] = config.vpn_service_provider
-    config_map_env['SERVER_COUNTRIES'] = ','.join(config.server_countries)
-    config_map_env['PORT_FORWARD_ONLY'] = 'on' if config.port_forward_only else 'off'
-    config_map_env['DOT'] = 'on' if config.dot else 'off'
+    if config.vpn_service_provider == 'protonvpn':
+        if config.port_forwarding is not None:
+            config_map_env['PORT_FORWARD_ONLY'] = 'on'
+        config_map_env['FREE_ONLY'] = 'on' if config.protonvpn.free else 'off'
+        config_map_env['SERVER_COUNTRIES'] = ','.join(config.protonvpn.server_countries)
+
+    if config.port_forwarding is not None:
+        config_map_env['VPN_PORT_FORWARDING'] = 'on' if config.port_forwarding else 'off'
+        if config.port_forwarding.up_command is not None:
+            config_map_env['VPN_PORT_FORWARDING_UP_COMMAND'] = config.port_forwarding.up_command
+        if config.port_forwarding.down_command is not None:
+            config_map_env['VPN_PORT_FORWARDING_DOWN_COMMAND'] = config.port_forwarding.down_command
+        if config.port_forwarding.listening_port is not None:
+            config_map_env['VPN_PORT_FORWARDING_LISTENING_PORT'] = config.port_forwarding.listening_port
+    if config.dns is not None:
+        if config.dns.upstream_resolvers is not None and len(config.dns.upstream_resolvers) > 0:
+            config_map_env['DNS_UPSTREAM_RESOLVERS'] = ','.join(config.dns.upstream_resolvers)
+            
 
     env_secret_or_config_map_name = f'{args.app_def.metadata.name}-{args.component_name}-gluetun-environment'
     env_secret = client.V1Secret(

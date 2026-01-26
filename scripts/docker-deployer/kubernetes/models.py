@@ -228,6 +228,29 @@ class RatholeRouteConfig(BaseModel):
                 raise ValueError("host must be supplied when route is not direct") 
         return self
 
+class GluetunWireguardConfig(BaseModel):
+    private_key: str
+    mtu: int | None = None
+
+class GluetunPortForwardingConfig(BaseModel):
+    up_command: str | None = None
+    down_command: str | None = None
+    listening_port: int | None = None
+
+class GluetunDnsConfig(BaseModel):
+    upstream_resolvers: list[str] | None = None
+
+class ProtonVpnConfig(BaseModel):
+    free: bool = False
+    server_countries: list[str] = Field(default=['Switzerland','Netherlands','Spain'])
+
+class GluetunConfig(BaseModel):
+    wireguard: GluetunWireguardConfig | None = None
+    protonvpn: ProtonVpnConfig = Field(default_factory=ProtonVpnConfig)
+    vpn_service_provider: str = Field(default='protonvpn')
+    port_forwarding: GluetunPortForwardingConfig | None = None
+    dns: GluetunDnsConfig | None = None
+
 class NetworkingSpec(BaseModel):
     dependencies: list[NetworkingDependency] | None = None
     ingresses: list[IngressConfig] | None = None
@@ -235,6 +258,7 @@ class NetworkingSpec(BaseModel):
     rathole_routes: list[RatholeRouteConfig] | None = None
     ip_addresses: list[IPAddressConfig] | None = None
     ports: dict[str, int | PortConfig] = Field(default_factory=dict)
+    gluetun: GluetunConfig | None = None
 
     def get_port_number(self, port_name: str) -> int:
         port = self.ports[port_name]
@@ -487,15 +511,6 @@ class ObservabilitySpec(BaseModel):
     alloy: AlloyObservabilitySpec | None = None
     probes: dict[str, ProbeSpec] | None = None
 
-class GluetunWireguardConfig(BaseModel):
-    private_key: str
-
-class GluetunConfig(BaseModel):
-    wireguard: GluetunWireguardConfig | None = None
-    vpn_service_provider: str = Field(default='protonvpn')
-    server_countries: list[str] = Field(default=['Switzerland','Netherlands','Spain'])
-    port_forward_only: bool = True
-    dot: bool = False
 
 class Component(BaseModel):
     metadata: ComponentMetadata
@@ -510,7 +525,6 @@ class Component(BaseModel):
     startup: StartupSpec | None = None
     resources: Resources | None = None
     charon: CharonConfig | None = None
-    gluetun: GluetunConfig | None = None
     observability: ObservabilitySpec | None = None
     
     # Custom fields that might be in your YAML
