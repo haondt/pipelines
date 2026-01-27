@@ -250,6 +250,7 @@ class ProtonVpnConfig(BaseModel):
 
 class GluetunFirewallConfig(BaseModel):
     input_ports: list[str] | None = None
+    outbound_subnets: list[str] | None = None
 
 class GluetunConfig(BaseModel):
     wireguard: GluetunWireguardConfig | None = None
