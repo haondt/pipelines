@@ -68,33 +68,34 @@ def create_ip_address_manifests(args: ManifestArguments) -> list[dict[str, Any]]
             )
 
 
-            network_policy = client.V1NetworkPolicy(
-                api_version="networking.k8s.io/v1",
-                kind="NetworkPolicy",
-                metadata=client.V1ObjectMeta(
-                    name=get_ip_address_network_policy_name(args, component_name, ip_address_spec.ip),
-                    namespace=args.app_def.metadata.namespace,
-                    labels=component_labels,
-                    annotations=component_annotations
-                ),
-                spec=client.V1NetworkPolicySpec(
-                    pod_selector=client.V1LabelSelector(match_labels={
-                        APP_SELECTOR_NAME: component_labels[APP_SELECTOR_NAME],
-                        COMPONENT_SELECTOR_NAME: component_labels[COMPONENT_SELECTOR_NAME],
-                        PROJECT_SELECTOR_NAME: component_labels[PROJECT_SELECTOR_NAME],
-                    }),
-                    policy_types=["Ingress"],
-                    ingress=[
-                        client.V1NetworkPolicyIngressRule(
-                            _from=[client.V1NetworkPolicyPeer(
-                                ip_block=client.V1IPBlock(cidr="0.0.0.0/0")
-                            )],
-                            ports=network_policy_ports
-                        )
-                    ]
+            if ip_address_spec.network_policy.create:
+                network_policy = client.V1NetworkPolicy(
+                    api_version="networking.k8s.io/v1",
+                    kind="NetworkPolicy",
+                    metadata=client.V1ObjectMeta(
+                        name=get_ip_address_network_policy_name(args, component_name, ip_address_spec.ip),
+                        namespace=args.app_def.metadata.namespace,
+                        labels=component_labels,
+                        annotations=component_annotations
+                    ),
+                    spec=client.V1NetworkPolicySpec(
+                        pod_selector=client.V1LabelSelector(match_labels={
+                            APP_SELECTOR_NAME: component_labels[APP_SELECTOR_NAME],
+                            COMPONENT_SELECTOR_NAME: component_labels[COMPONENT_SELECTOR_NAME],
+                            PROJECT_SELECTOR_NAME: component_labels[PROJECT_SELECTOR_NAME],
+                        }),
+                        policy_types=["Ingress"],
+                        ingress=[
+                            client.V1NetworkPolicyIngressRule(
+                                _from=[client.V1NetworkPolicyPeer(
+                                    ip_block=client.V1IPBlock(cidr="0.0.0.0/0")
+                                )],
+                                ports=network_policy_ports
+                            )
+                        ]
+                    )
                 )
-            )
+                manifests.append(client.ApiClient().sanitize_for_serialization(network_policy))
 
             manifests.append(client.ApiClient().sanitize_for_serialization(service))
-            manifests.append(client.ApiClient().sanitize_for_serialization(network_policy))
     return manifests

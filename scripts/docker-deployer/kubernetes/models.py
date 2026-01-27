@@ -208,9 +208,13 @@ class PortConfig(BaseModel):
         make_uppercase(values, 'protocol')
         return values
 
+class NetworkPolicyConfig(BaseModel):
+    create: bool = Field(default=True)
+
 class IPAddressConfig(BaseModel):
     ip: str
     ports: list[str]
+    network_policy: NetworkPolicyConfig = Field(default_factory=NetworkPolicyConfig)
 
 class RatholeRouteConfig(BaseModel):
     port: str
@@ -262,6 +266,7 @@ class NetworkingSpec(BaseModel):
     ip_addresses: list[IPAddressConfig] | None = None
     ports: dict[str, int | PortConfig] = Field(default_factory=dict)
     gluetun: GluetunConfig | None = None
+    host_aliases: dict[str, str] | None = None
 
     def get_port_number(self, port_name: str) -> int:
         port = self.ports[port_name]
