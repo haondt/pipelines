@@ -74,7 +74,7 @@ def create_gluetun_component_manifests(args: ComponentManifestArguments, network
         if config.firewall.input_ports:
             config_map_env['FIREWALL_INPUT_PORTS'] = ','.join([str(networking.get_port_number(i)) for i in config.firewall.input_ports])
         if config.firewall.outbound_subnets:
-            config_map_env['FIREWALL_OUTBOUND_SUBNETS'] = ','.join([str(networking.get_port_number(i)) for i in config.firewall.outbound_subnets])
+            config_map_env['FIREWALL_OUTBOUND_SUBNETS'] = ','.join(config.firewall.outbound_subnets)
 
     env_secret_or_config_map_name = f'{args.app_def.metadata.name}-{args.component_name}-gluetun-environment'
     env_secret = client.V1Secret(
