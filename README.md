@@ -50,6 +50,15 @@ tasks:
       - gitlab
       - pypi
       - testpypi
+  - type: bun-build
+    package: foo-package
+    context: . # optional
+    name: foo-package # optional
+    auto: # optional
+      - source: push
+      - source: web
+    registries:
+      - gitlab
   - type: docker-deploy
     target: foo@bar # this can be a static value or an env variable
     key: $TARGET_SSH_KEY # this can be a static value or an env variable
@@ -135,6 +144,15 @@ workflow:
 ```yml
 __version__ = "x.y.z"
 ```
+
+## `bun-build`
+
+**notes**
+- only works on tag pipelines
+- the `auto` entry
+  - see [docker-build](#docker-build) for basics, with a caveat:
+    - only the `source` key is supported, as the job will fail on non-tag pipelines
+- `name`: this will be used as a discriminator in the pipeline to avoid collisions for tasks of the same type
 
 ## `docker-deploy`
 
