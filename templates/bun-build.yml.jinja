@@ -10,10 +10,12 @@ bun-build:{{ task.package }}{{ job_discriminator }}:
   image: {{ images.bun }}
   script:
     - cd {{ task.context|default('.') }}
-    - bun pm pack --destination dist
+    - bun ci
+    - bun --bun run build
+    - bun pm pack --destination build
   artifacts:
     paths:
-      - dist/*.tgz
+      - build/*.tgz
     expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
 
 {% for registry in task.registries %}
@@ -31,5 +33,5 @@ bun-publish{{ job_discriminator }}:{{ registry }}:{{ tag }}:
     BUN_CONFIG_REGISTRY: $GITLAB_NPM_REPOSITORY_URL
     {% endif %}
   script:
-    - bun publish dist/* --tag {{ tag }} -p
+    - bun publish build/* --tag {{ tag }} -p
 {% endfor %}
