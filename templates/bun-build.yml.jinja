@@ -1,0 +1,35 @@
+stages:
+  - build
+  - push
+
+{% set tag = helpers.get_version(env) %}
+{% set job_discriminator =  helpers.get_job_discriminator(task) %}
+
+bun-build:{{ task.package }}{{ job_discriminator }}:
+  stage: build
+  image: {{ images.bun }}
+  script:
+    - cd {{ task.context|default('.') }}
+    - bun pm pack --destination dist
+  artifacts:
+    paths:
+      - dist/*.tgz
+    expire_in: {{ env['DEFAULT_ARTIFACT_EXPIRY'] }}
+
+{% for registry in task.registries %}
+bun-publish{{ job_discriminator }}:{{ registry }}:{{ tag }}:
+  stage: push
+  image: {{ images.bun }}
+  needs:
+    - bun-build:{{ task.package }}{{ job_discriminator }}
+  {% if helpers.should_use_manual_push(task, env) %}
+  when: manual
+  {% endif %}
+  variables:
+    {% if registry == 'gitlab' %}
+    BUN_CONFIG_TOKEN: $GITLAB_CR_PASSWORD
+    BUN_CONFIG_REGISTRY: $GITLAB_NPM_REPOSITORY_URL
+    {% endif %}
+  script:
+    - bun publish dist/* --tag {{ tag }} -p
+{% endfor %}

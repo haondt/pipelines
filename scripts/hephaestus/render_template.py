@@ -1,7 +1,8 @@
 import yaml, argparse
 from jinja2 import Environment, FileSystemLoader
+
 from .jinja2_extensions import setup_filters
-from .helpers import docker_build, python_build, docker_deploy, dotnet_build, docker_deploy_v2
+from .helpers import docker_build, python_build, docker_deploy, dotnet_build, docker_deploy_v2, bun_build
 import os
 import functools
 
@@ -13,6 +14,7 @@ def get_images():
         'docker_deployer': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:1.1.8',
         'docker_deployer_v2': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:2.3.0',
         'python': 'registry.gitlab.com/haondt/cicd/registry/python-builder:2.0.1',
+        'bun': 'oven/bun:1.3.10-alpine',
         'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.0.4',
         'dotnet': 'registry.gitlab.com/haondt/cicd/registry/dotnet-builder:0.0.2',
     }
@@ -99,6 +101,9 @@ def render_template(env, xtra, task, task_type = None, templates: str | None = N
     if task_type == 'python-build':
         template = get_jinja(templates).get_template('python-build.yml.jinja')
         return template.render(helpers=python_build, task=task, env=env, images=get_images())
+    if task_type == 'bun-build':
+        template = get_jinja(templates).get_template('bun-build.yml.jinja')
+        return template.render(helpers=bun_build, task=task, env=env, images=get_images())
     if task_type == 'docker-deploy':
         template = get_jinja(templates).get_template('docker-deploy.yml.jinja')
         return template.render(helpers=docker_deploy, task=task, env=env, images=get_images(), xtra=xtra)
