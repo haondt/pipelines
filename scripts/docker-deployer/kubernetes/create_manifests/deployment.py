@@ -53,7 +53,7 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         # Create pod template spec
         pod_template = client.V1PodTemplateSpec(
             metadata=client.V1ObjectMeta(labels=component_labels, annotations=component_annotations),
-            spec=client.V1PodSpec(containers=[container]),
+            spec=client.V1PodSpec(containers=[container], enable_service_links=False),
         )
         assert pod_template.spec is not None
 
