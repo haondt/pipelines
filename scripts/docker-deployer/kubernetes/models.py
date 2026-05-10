@@ -38,6 +38,9 @@ class HostVolumeSource(BaseModel):
     read_only: bool = Field(default=True)
     create: bool = Field(default=False)
 
+class VolumeVolumeSource(BaseModel):
+    name: str
+
 
 # Volume specifications
 class VolumeSource(BaseModel):
@@ -50,6 +53,7 @@ class VolumeSource(BaseModel):
     host: HostVolumeSource | None = None
     scratch: ScratchVolumeSource | None = None
     tmpfs: TmpfsVolumeSource | None = None
+    volume: VolumeVolumeSource | None = None
 
     @model_validator(mode="after")
     def validate_type(self):
@@ -61,7 +65,8 @@ class VolumeSource(BaseModel):
             self.pvc,
             self.host,
             self.tmpfs,
-            self.scratch
+            self.scratch,
+            self.volume
         ] if i is not None]
 
         if len(selected) != 1:
@@ -77,6 +82,7 @@ class VolumeSource(BaseModel):
 class VolumeDestination(BaseModel):
     file: str | None = None
     dir: str | None = None
+    read_only: bool = Field(default=False)
 
     @model_validator(mode="after")
     def validate_type(self):
@@ -201,6 +207,7 @@ class NetworkingDependency(BaseModel):
 class PortConfig(BaseModel):
     port: int
     protocol: str = Field(default='TCP')
+    container: str | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -520,10 +527,19 @@ class ObservabilitySpec(BaseModel):
     alloy: AlloyObservabilitySpec | None = None
     probes: dict[str, ProbeSpec] | None = None
 
+class SidecarConfig(BaseModel):
+    image: str
+    command: list[str] | None = None
+    args: list[str] | None = None
+    volumes: dict[str, VolumeSpec] | None = None
+    environment: list[EnvironmentSpec] | None = None
+
+    # Custom fields that might be in your YAML
+    class Config:
+        extra = "allow"  # Allow extra fields like talos
 
 class Component(BaseModel):
     metadata: ComponentMetadata
-
     image: str
     command: list[str] | None = None
     args: list[str] | None = None
@@ -535,6 +551,7 @@ class Component(BaseModel):
     resources: Resources | None = None
     charon: CharonConfig | None = None
     observability: ObservabilitySpec | None = None
+    sidecars: dict[str, SidecarConfig] = Field(default_factory=dict)
     
     # Custom fields that might be in your YAML
     class Config:

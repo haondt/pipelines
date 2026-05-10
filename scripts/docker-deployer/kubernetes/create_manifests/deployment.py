@@ -10,6 +10,7 @@ from .startup import create_startup_init_containers
 from .charon import create_charon_component_manifests
 from .gluetun import create_gluetun_component_manifests
 from .observability import create_observability_manifests
+from .sidecar import create_sidecar_manifests
 
 def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
@@ -136,6 +137,17 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                         )
                     ))
 
+        # add sidecars
+        # must come before networking cuz ports
+        if len(component.sidecars) > 0:
+            sidecar_manifests, sidecar_pod_template_volumes, sidecar_containers = create_sidecar_manifests(component_args, component.sidecars)
+            manifests += sidecar_manifests
+            assert pod_template.spec is not None
+            if pod_template.spec.volumes is None:
+                pod_template.spec.volumes = []
+            pod_template.spec.volumes += sidecar_pod_template_volumes
+            pod_template.spec.containers += sidecar_containers
+
         # add networking
         if component.networking:
 
@@ -144,13 +156,28 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                 for port_name, port in component.networking.ports.items():
                     port_number = port
                     port_protocol = 'TCP'
+                    port_container = container
                     if isinstance(port, PortConfig):
                         port_number = port.port
                         port_protocol = port.protocol
 
-                    if not container.ports:
-                        container.ports = []
-                    container.ports.append(client.V1ContainerPort(
+                        if port.container:
+                            port_container = None
+                            for sidecar_container in pod_template.spec.containers:
+                                if sidecar_container.name == port.container:
+                                    port_container = sidecar_container
+                                    break
+                            if port_container is None and pod_template.spec.init_containers:
+                                for sidecar_container in pod_template.spec.init_containers:
+                                    if sidecar_container.name == port.container:
+                                        port_container = sidecar_container
+                                        break
+                            if port_container is None:
+                                raise ValueError(f"Could not find container {port.container} to assign port {port_name} ({port})")
+
+                    if not port_container.ports:
+                        port_container.ports = []
+                    port_container.ports.append(client.V1ContainerPort(
                         container_port=port_number,
                         name=port_name,
                         protocol=port_protocol
@@ -225,9 +252,9 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         if component.charon:
             manifests += create_charon_component_manifests(component_args, component.charon, deployment, pod_template.spec.volumes)
 
-
         if component.observability:
             manifests += create_observability_manifests(component_args, component.observability, component.networking)
+
 
         manifests.append(client.ApiClient().sanitize_for_serialization(deployment))
 

@@ -85,8 +85,15 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
     manifests: list[Any] = []
     volumes: list[client.V1Volume] = []
     volume_mounts: list[client.V1VolumeMount] = []
-    
-    if volume_spec.src.host:
+
+    if volume_spec.src.volume:
+        volume_mounts.append(client.V1VolumeMount(
+            name=volume_spec.src.volume.name,
+            mount_path=volume_spec.dest.dir,
+            read_only=volume_spec.dest.read_only
+        ))
+
+    elif volume_spec.src.host:
         volumes.append(client.V1Volume(
             name=volume_manifest_name,
             host_path=client.V1HostPathVolumeSource(
@@ -97,7 +104,7 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
         volume_mounts.append(client.V1VolumeMount(
             name=volume_manifest_name,
             mount_path=volume_spec.dest.dir,
-            read_only=volume_spec.src.host.read_only
+            read_only=volume_spec.src.host.read_only or volume_spec.dest.read_only
         ))
 
     elif volume_spec.src.pvc:
@@ -113,6 +120,7 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
         volume_mounts.append(client.V1VolumeMount(
             name=volume_manifest_name,
             mount_path=volume_spec.dest.dir,
+            read_only=volume_spec.dest.read_only
         ))
 
     elif volume_spec.src.scratch:
@@ -125,6 +133,7 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
         volume_mounts.append(client.V1VolumeMount(
             name=volume_manifest_name,
             mount_path=volume_spec.dest.dir,
+            read_only=volume_spec.dest.read_only
         ))
 
     elif volume_spec.src.tmpfs:
@@ -138,6 +147,7 @@ def create_volume_manifest(args: ComponentManifestArguments, volume_manifest_nam
         volume_mounts.append(client.V1VolumeMount(
             name=volume_manifest_name,
             mount_path=volume_spec.dest.dir,
+            read_only=volume_spec.dest.read_only
         ))
 
 
