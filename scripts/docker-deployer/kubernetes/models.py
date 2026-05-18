@@ -456,7 +456,7 @@ class CharonSource(BaseModel):
 class BaseCharonBackupConfig(BaseModel):
     repository_configs: list[CharonRepositoryConfig] | None = None
     volumes: list[CharonVolume] | None = None
-    source: CharonSource | None = None
+    source: CharonSource | None = None 
 
 class BaseCharonConfig(BaseModel):
     name: str | None = None
@@ -469,12 +469,6 @@ class CharonBackupConfig(BaseCharonBackupConfig):
 class CharonConfig(BaseCharonConfig):
     overlays: list[str] = Field(default_factory=list)
     backups: list[CharonBackupConfig] = Field(default_factory=list)
-    mode: str = Field(default="backup") # backup or revert
-    @model_validator(mode="after")
-    def validate_type(self):
-        if self.mode not in ['backup', 'revert']:
-            raise ValueError(f'Unknown job mode \'{self.mode}\'. Must be one of \'backup\', \'revert\'')
-        return self
 
 class AppDefaultsCharon(BaseModel):
     overlays: dict[str, BaseCharonConfig] = Field(default_factory=dict)
