@@ -11,6 +11,7 @@ from .charon import create_charon_component_manifests
 from .gluetun import create_gluetun_component_manifests
 from .observability import create_observability_manifests
 from .sidecar import create_sidecar_manifests
+from .security import add_security_context, configure_container_security_context
 
 def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
     manifests = []
@@ -200,9 +201,6 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
         # add security
         if component.security:
             security = component.security
-            def add_security_context(c):
-                if c.security_context is None:
-                    c.security_context = client.V1SecurityContext()
 
             # add capabilities
             if security.cap and security.cap.add:
@@ -221,15 +219,7 @@ def create_deployment_manifests(args: ManifestArguments) -> list[dict[str, Any]]
                         name=sysctl,
                         value="1"
                     ))
-            if security.user:
-                add_security_context(container)
-                assert container.security_context is not None
-                container.security_context.run_as_user = security.user
-            if security.group:
-                add_security_context(container)
-                assert container.security_context is not None
-                container.security_context.run_as_group = security.group
-
+            configure_container_security_context(container, security)
 
             if security.groups:
                 if pod_template.spec.security_context is None:

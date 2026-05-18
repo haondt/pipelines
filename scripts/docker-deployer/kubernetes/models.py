@@ -360,10 +360,16 @@ class GomplateStartupTask(BaseModel):
 class BusyBoxStartupTask(BaseModel):
     script: str
 
+class ContainerSecuritySpec(BaseModel):
+    groups: SecurityGroupsSpec | None = None
+    group: int | None = None
+    user: int | None = None # 0 = root
+
 class CustomImageStartupTask(BaseModel):
     image: str
     command: str | list[str]
     args: str | list[str] = Field(default_factory=list)
+    security: ContainerSecuritySpec | None = None
 
 class StartupTask(BaseModel):
     chown: ChownStartupTask | None = None

@@ -2,6 +2,7 @@ from .models import ComponentManifestArguments
 from ..models import *
 import json
 from ..utils import coerce_dns_name, generate_stable_id
+from .security import configure_container_security_context
 from typing import Any
 from kubernetes import client
 
@@ -152,6 +153,9 @@ def create_startup_init_containers(args: ComponentManifestArguments, tasks: list
                 container.args = [task.custom.args]
             elif len(task.custom.args) > 0:
                 container.args = task.custom.args
+            if task.custom.security:
+                configure_container_security_context(container, task.custom.security)
+                
             containers.append(container)
         else:
             raise ValueError(f'Unsupported startup.task type {task}')
