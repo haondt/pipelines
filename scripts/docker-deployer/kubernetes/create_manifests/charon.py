@@ -176,7 +176,7 @@ def create_charon_component_manifests(args: ComponentManifestArguments, config: 
                         ),
                         client.V1EnvVar(
                             name='CHARON_BACKUPJOB_MODE',
-                            value='backup'
+                            value=config.mode
                         )
                     ]
                 )]
