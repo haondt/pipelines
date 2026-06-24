@@ -71,6 +71,8 @@ def get_env():
         env['DEFAULT_ARTIFACT_EXPIRY'] = '1 day'
         trycpy('DEFAULT_ARTIFACT_EXPIRY')
 
+        trycpy('BUN_PUBLISH_VERSION')
+
         _env = env
 
     return _env
