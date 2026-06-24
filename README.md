@@ -148,11 +148,13 @@ __version__ = "x.y.z"
 ## `bun-build`
 
 **notes**
-- only works on tag pipelines
+- only works on tag pipelines, unless `BUN_PUBLISH_VERSION` is set
 - the `auto` entry
   - see [docker-build](#docker-build) for basics, with a caveat:
     - only the `source` key is supported, as the job will fail on non-tag pipelines
 - `name`: this will be used as a discriminator in the pipeline to avoid collisions for tasks of the same type
+- env vars:
+  - `BUN_PUBLISH_VERSION`: if set, this value will be used as the package version instead of deriving it from `CI_COMMIT_TAG`. This allows bun packages to be published from non-tag pipelines.
 
 ## `docker-deploy`
 
