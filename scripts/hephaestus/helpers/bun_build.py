@@ -1,10 +1,13 @@
-from ..utils import try_get_version
+from ..utils import try_get_semantic_version
 
 def get_version(env):
+    version_from_env = env.get('BUN_PUBLISH_VERSION')
+    if version_from_env:
+        return version_from_env
     commit_tag = env.get('CI_COMMIT_TAG')
     if commit_tag is None:
         raise RuntimeError('no commit tag associated with pipeline')
-    version = try_get_version(commit_tag)
+    version = try_get_semantic_version(commit_tag)
     if version is None:
         raise ValueError(f'commit tag `{commit_tag}` not in expected format')
     return version
