@@ -175,6 +175,7 @@ class HttpRouteConfig(BaseModel):
     hosts: list[str] | None = None
     port: str
     protocol: str = Field(default='TCP')
+    timeout: str | None = None
 
     @model_validator(mode="before")
     @classmethod

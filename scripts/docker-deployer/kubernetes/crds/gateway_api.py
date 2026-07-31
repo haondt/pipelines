@@ -29,6 +29,10 @@ class ParentReference(CamelModel):
     section_name: str | None = None
     port: int | None = None
 
+class HttpRouteTimeouts(CamelModel):
+    request: str | None = None
+    backend_request: str | None = None
+
 # this class is incomplete
 class HttpBackendRef(CamelModel):
     group: str | None = None
@@ -37,11 +41,12 @@ class HttpBackendRef(CamelModel):
     name: str
     port: int | None = None # port of the service, not the target
     weight: int | None = None
-    
+
 # this class is incomplete
 class HttpRouteRule(CamelModel):
     name: str | None = None
     backend_refs: list[HttpBackendRef] | None = None
+    timeouts: HttpRouteTimeouts | None = None
 
 
 class HttpRouteSpec(CamelModel):

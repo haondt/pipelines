@@ -38,6 +38,15 @@ def create_gateway_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
                 hostnames.append(http_route_spec.host)
             hostnames += http_route_spec.hosts or []
 
+            rule=gateway_api.HttpRouteRule(
+                backend_refs=[gateway_api.HttpBackendRef(
+                    name=get_service_name(args, component_name),
+                    port=networking.get_port_number(http_route_spec.port),
+                )]
+            )
+            if http_route_spec.timeout is not None:
+                rule.timeouts = gateway_api.HttpRouteTimeouts(request = http_route_spec.timeout)
+
             http_route = gateway_api.HttpRoute(
                 metadata=client.V1ObjectMeta(
                     name=get_http_route_name(args, component_name, first_host),
@@ -51,12 +60,7 @@ def create_gateway_manifests(args: ManifestArguments) -> list[dict[str, Any]]:
                         namespace=args.app_def.defaults.networking.gateway.namespace
                     )],
                     hostnames=hostnames,
-                    rules=[gateway_api.HttpRouteRule(
-                        backend_refs=[gateway_api.HttpBackendRef(
-                            name=get_service_name(args, component_name),
-                            port=networking.get_port_number(http_route_spec.port)
-                        )]
-                    )]
+                    rules=[rule]
                 )
             )
             manifests.append(http_route.dump_for_dd())
