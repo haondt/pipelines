@@ -15,6 +15,8 @@ tasks:
       - linux/amd64
       - linux/i386
       - linux/arm64
+    build_args: # optional
+      MY_ARG: my value
     auto: # optional
       - source: push
         branch: main
@@ -128,6 +130,7 @@ workflow:
   - `has_tag`: bool, indicating if `CI_COMMIT_TAG` is present
   - note that this is not the same as setting the overall pipeline triggers, and that still needs to be set manually in your `.gitlab-ci.yml`.
 - `platforms`: specifies which platforms to compile for. By default only compiles to `linux/amd64`
+- `build_args`: Add `--build-arg`s to the docker image build command
 - `labels`: specify labels for the container
   - `authors`, `url`, `documentation`, `source`, `vendor`, `licenses`, `title`, `description`: if any of these are present, they will be copied over to `org.opencontainers.<LABEL>`.
 

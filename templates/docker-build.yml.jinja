@@ -30,6 +30,11 @@ docker-build-{{ task.image }}:
         -t {{ task.image }}
         -f {{ task.file|default('Dockerfile') }}
         --load
+        {% if 'build_args' in task -%}
+        {% for arg_name, arg_value in task.build_args.items() -%}
+        --build-arg {{ arg_name }}={{ arg_value }}
+        {% endfor -%}
+        {% endif -%}
         {% if version != None -%}
         --label org.opencontainers.image.version="{{ version }}"
         {% endif -%}
