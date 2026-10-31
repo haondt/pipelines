@@ -1,0 +1,4 @@
+mkdocstrings[python]
+mkdocs-material
+mkdocs-click
+pelican[markdown]

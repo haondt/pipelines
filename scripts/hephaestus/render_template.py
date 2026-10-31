@@ -15,7 +15,7 @@ def get_images():
         'docker_deployer_v2': 'registry.gitlab.com/haondt/cicd/registry/docker-deployer:2.3.0',
         'python': 'registry.gitlab.com/haondt/cicd/registry/python-builder:2.0.1',
         'bun': 'oven/bun:1.3.10-alpine',
-        'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.0.4',
+        'docs': 'registry.gitlab.com/haondt/cicd/registry/docs-builder:1.1.0',
         'dotnet': 'registry.gitlab.com/haondt/cicd/registry/dotnet-builder:0.0.2',
     }
 

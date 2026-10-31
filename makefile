@@ -4,6 +4,7 @@ SCRIPT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/scripts
 build-dockers:
 	docker build -t docker-deployer:local ./images/docker-deployer
 	docker build -t hephaestus:local ./images/hephaestus
+	docker build -t docs-builder:local ./images/docs-builder
 
 clean:
 	docker rmi docker-deployer:local || true

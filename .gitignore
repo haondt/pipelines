@@ -1,3 +1,19 @@
 __pycache__/
 venv
 env
+
+# git-ignore: claude-sandbox - placeholder files created by the claude sandbox
+/.claude/
+
+# git-ignore: claude-sandbox-conditional
+/.bash_profile
+/.bashrc
+/.gitconfig
+/.gitmodules
+/.idea
+/.mcp.json
+/.profile
+/.ripgreprc
+/.vscode
+/.zprofile
+/.zshrc
