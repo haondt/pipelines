@@ -131,7 +131,7 @@ gitlab-pages:
 cloudflare-pages-{{ target.project }}:
   image: {{ images.docs }}
   environment:
-    name: {{ target.environment or ("cloudflare/" ~ target.project) }}
+    name: {{ target.environment or ("cloudflare-pages/" ~ target.project) }}
 {% endif %}
   stage: deploy
   needs:
