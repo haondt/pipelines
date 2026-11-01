@@ -187,6 +187,7 @@ __version__ = "x.y.z"
       - `cloudflare-pages`
         - requires `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` env vars
         - requires `project`, which refers to the cloudflare project. The job will execute on environment `target.environment ?? "cloudflare-pages/{project}"`.
+        - `branch` (optional) branch (e.g. `Preview`, `Production`) of cloudflare pages project to deploy to.
       - `gitlab-pages`
         - requires gitlab pages to be enabled on the repo
 
