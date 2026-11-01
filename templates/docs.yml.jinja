@@ -155,7 +155,7 @@ cloudflare-pages-{{ target.project }}:
     paths:
       - public
 {% elif target.type == "cloudflare-pages" %}
-{#- needs $CLOUDFLARE_ACCOUNT_ID and $CLOUDFLARE_API_TOKEN -#}
+{# needs $CLOUDFLARE_ACCOUNT_ID and $CLOUDFLARE_API_TOKEN #}
   script:
     - wrangler pages deploy public --project-name={{ target.project }}
 {% else %}
