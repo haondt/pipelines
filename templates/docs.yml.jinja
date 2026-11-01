@@ -158,7 +158,7 @@ cloudflare-pages-{{ target.project }}:
 {% elif target.type == "cloudflare-pages" %}
 {# needs $CLOUDFLARE_ACCOUNT_ID and $CLOUDFLARE_API_TOKEN #}
   script:
-    - wrangler pages deploy public --project-name={{ target.project }}
+    - wrangler pages deploy public --project-name={{ target.project }} --commit-diry=true
 {% else %}
   script:
     - echo "noop"
