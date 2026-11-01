@@ -129,6 +129,7 @@ gitlab-pages:
   pages: true
 {% elif target.type == "cloudflare-pages" %}
 cloudflare-pages-{{ target.project }}:
+  image: {{ images.docs }}
   environment:
     name: {{ target.environment or ("cloudflare/" ~ target.project) }}
 {% endif %}
