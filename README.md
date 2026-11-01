@@ -172,16 +172,23 @@ __version__ = "x.y.z"
 ## `docs`
 
 **notes**
-- requires gitlab pages to be enabled on the repo
 - `sources` - list of projects to render docs for
-  - `subpath` - on the deployed project, the url for the project docs will be `/{docs-project-name}/{subpath}`
-  - `type` - type of renderer to use
-  - `repository` - path to git repo containing docs
-  - `ref` - ref (branch or tag) to checkout on project repository
+  - `subpath` (optional) - on the deployed project, the url for the project docs will be `/{subpath}`, or `/` if omitted.
+    - Keep in mind, gitlab pages prepends the path with the project name, so it would be at `https://haondt.gitlab.io/{docs-project-name}/{subpath}`
+  - `type` - type of renderer to use (`pelican`, `mkdocs`, `copy`)
+  - `repository` (optional) - path to git repo containing docs
+  - `ref` - (optional) ref (branch or tag) to checkout on project repository
   - `context` (optional) - path (relative to project repository) to perform the build and install operations inside
   - `install` (optional) - list of pip packages to install before generating the docs. Useful for things like [mkdocs-click](https://github.com/mkdocs/mkdocs-click).
 - the `auto` entry
   - see [docker-build](#docker-build), works the same way
+- `targets` - list of deployment targets
+  - `type` - `gitlab-pages` or `cloudflare-pages`
+      - `cloudflare-pages`
+        - requires `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` env vars
+        - requires `project`, which refers to the cloudflare project. The job will execute on environment `target.environment ?? "cloudflare-pages/{project}"`.
+      - `gitlab-pages`
+        - requires gitlab pages to be enabled on the repo
 
 ## `dotnet-build`
 
